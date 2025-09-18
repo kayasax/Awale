@@ -1,0 +1,30 @@
+{
+  "name": "awale-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "packages/core",
+    "packages/bot",
+    "packages/shared"
+  ],
+  "scripts": {
+    "build": "npm run build -w @awale/shared && npm run build -w @awale/core && npm run build -w @awale/bot",
+    "test": "jest --config jest.config.cjs --passWithNoTests",
+    "lint": "eslint . --ext .ts",
+    "dev:bot": "npm run dev -w @awale/bot",
+    "demo:cli": "node demo/cli-demo.js",
+    "demo:cards": "npx ts-node demo/adaptive-card-demo.ts"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.11.30",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "jest": "^29.7.0",
+    "prettier": "^3.2.5",
+    "ts-jest": "^29.1.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}

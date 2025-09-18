@@ -1,0 +1,22 @@
+﻿{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "declaration": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "types": ["node", "jest"],
+    "baseUrl": ".",
+    "paths": {
+      "@awale/core/*": ["packages/core/src/*"],
+      "@awale/shared/*": ["packages/shared/src/*"],
+      "@awale/bot/*": ["packages/bot/src/*"],
+      "@awale/core": ["packages/core/src"],
+      "@awale/shared": ["packages/shared/src"],
+      "@awale/bot": ["packages/bot/src"]
+    }
+  }
+}

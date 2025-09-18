@@ -1,0 +1,71 @@
+﻿{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.19/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.19",
+  "version": "1.0.0",
+  "id": "00000000-0000-0000-0000-000000000000",
+  "developer": {
+    "name": "Awale Game Developer",
+    "websiteUrl": "https://github.com/your-username/awale",
+    "privacyUrl": "https://github.com/your-username/awale/blob/main/PRIVACY.md",
+    "termsOfUseUrl": "https://github.com/your-username/awale/blob/main/TERMS.md"
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "name": {
+    "short": "Awale Game",
+    "full": "Awale (Oware) - Ancient African Strategy Game"
+  },
+  "description": {
+    "short": "Play the ancient African strategy game Awale right in Teams!",
+    "full": "Experience Awale (also known as Oware), the classic African mancala strategy game, directly within Microsoft Teams. Challenge an AI opponent in this timeless game of skill and strategy. Capture seeds by sowing them around the board - first player to collect 25+ seeds wins! Perfect for quick strategic breaks during work."
+  },
+  "accentColor": "#8B4513",
+  "bots": [
+    {
+      "botId": "00000000-0000-0000-0000-000000000000",
+      "scopes": [
+        "personal",
+        "team",
+        "groupChat"
+      ],
+      "commandLists": [
+        {
+          "scopes": [
+            "personal",
+            "team",
+            "groupChat"
+          ],
+          "commands": [
+            {
+              "title": "new game",
+              "description": "Start a new Awale game"
+            },
+            {
+              "title": "help",
+              "description": "Show game rules and help"
+            },
+            {
+              "title": "quit",
+              "description": "End the current game"
+            }
+          ]
+        }
+      ],
+      "supportsFiles": false,
+      "isNotificationOnly": false
+    }
+  ],
+  "permissions": [
+    "identity",
+    "messageTeamMembers"
+  ],
+  "validDomains": [
+    "*.ngrok.io",
+    "*.azurewebsites.net"
+  ],
+  "localizationInfo": {
+    "defaultLanguageTag": "en-us"
+  }
+}

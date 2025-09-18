@@ -1,0 +1,16 @@
+﻿# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: awale-teams-bot
+metadata:
+  template: awale-teams-bot@0.0.1-beta
+
+infra:
+  provider: bicep
+  path: ./infra
+  module: main
+
+services:
+  awale-bot:
+    project: ./packages/bot
+    language: js
+    host: appservice
