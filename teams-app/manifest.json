@@ -2,12 +2,12 @@
   "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.19/MicrosoftTeams.schema.json",
   "manifestVersion": "1.19",
   "version": "1.0.0",
-  "id": "00000000-0000-0000-0000-000000000000",
+  "id": "94ecc03e-3bdc-4f89-abce-2d6eda64f5bd",
   "developer": {
     "name": "Awale Game Developer",
-    "websiteUrl": "https://github.com/your-username/awale",
-    "privacyUrl": "https://github.com/your-username/awale/blob/main/PRIVACY.md",
-    "termsOfUseUrl": "https://github.com/your-username/awale/blob/main/TERMS.md"
+    "websiteUrl": "https://github.com/kayasax/Awale",
+    "privacyUrl": "https://github.com/kayasax/Awale/blob/main/PRIVACY.md",
+    "termsOfUseUrl": "https://github.com/kayasax/Awale/blob/main/TERMS.md"
   },
   "icons": {
     "color": "color.png",
@@ -24,7 +24,7 @@
   "accentColor": "#8B4513",
   "bots": [
     {
-      "botId": "00000000-0000-0000-0000-000000000000",
+      "botId": "94ecc03e-3bdc-4f89-abce-2d6eda64f5bd",
       "scopes": [
         "personal",
         "team",
