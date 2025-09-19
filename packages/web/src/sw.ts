@@ -25,6 +25,13 @@ self.addEventListener('activate', (event: any) => {
   );
 });
 
+// Listen for manual skipWaiting trigger (future use)
+self.addEventListener('message', (event: any) => {
+  if (event.data === 'SKIP_WAITING') {
+    (self as any).skipWaiting();
+  }
+});
+
 self.addEventListener('fetch', (event: any) => {
   const req = event.request;
   const url = new URL(req.url);
