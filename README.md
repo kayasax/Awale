@@ -72,8 +72,29 @@ The `pages.yml` workflow builds on pushes to `master` and publishes the `dist` o
 - Optional difficulty levels
 - Move history & replay
 - Mobile layout refinements
-- Sound toggle persistence (localStorage)
-- PWA (offline play)
+- Sound/theme persistence (localStorage)
+- PWA update notification polish (DONE: core offline support implemented)
+
+## 📱 PWA (Offline Support)
+The web client now includes a Progressive Web App layer:
+- `manifest.webmanifest` with install metadata & theme colors
+- Service Worker (`sw.js`) precaches core shell (HTML, JS, CSS, background image, manifest, favicon)
+- Network‑first strategy for `index.html` ensures new deployments propagate
+- Cache‑first for static assets for fast repeat loads offline
+- Versioned caches: `awale-static-<version>` auto‑clean old versions on activate
+- Update toast prompts user to refresh when a new build is available
+
+Install Tips:
+1. Desktop Chrome/Edge: Open the site → install icon in address bar.
+2. Android Chrome: Menu → Add to Home screen.
+3. iOS Safari: Share → Add to Home Screen (iOS may ignore some meta unless icons provided; PNG icons coming soon).
+
+Offline Testing:
+```
+npm run build -w @awale/web
+npx serve packages/web/dist
+```
+Load the served URL, then go offline and refresh—game should still load.
 
 ## 🧠 Engine Notes
 - 12 pit array (0‑5 player, 6‑11 AI)

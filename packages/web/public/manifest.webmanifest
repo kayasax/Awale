@@ -1,0 +1,16 @@
+﻿{
+  "name": "Awale (Oware) Game",
+  "short_name": "Awale",
+  "description": "Play Awale (Oware) in your browser with animated sowing, captures, themes, and offline support.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1b1d1f",
+  "theme_color": "#2a2d30",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "icon-192.svg", "sizes": "192x192", "type": "image/svg+xml" },
+    { "src": "icon-256.svg", "sizes": "256x256", "type": "image/svg+xml" },
+    { "src": "icon-512.svg", "sizes": "512x512", "type": "image/svg+xml" }
+  ]
+}
