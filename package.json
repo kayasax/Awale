@@ -5,7 +5,8 @@
   "workspaces": [
     "packages/core",
     "packages/bot",
-    "packages/shared"
+    "packages/shared",
+    "packages/web"
   ],
   "scripts": {
     "build": "npm run build -w @awale/shared && npm run build -w @awale/core && npm run build -w @awale/bot",

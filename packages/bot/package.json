@@ -1,11 +1,13 @@
 {
   "name": "@awale/bot",
   "version": "0.1.0",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/bot/src/index.js",
+  "types": "dist/bot/src/index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/server.js",
+  "bundle": "esbuild src/server.ts --platform=node --format=cjs --bundle --sourcemap --external:dtrace-provider --outfile=dist/server.bundle.cjs",
+    "build:all": "npm run build && npm run bundle",
+    "start": "node dist/server.bundle.cjs",
     "dev": "nodemon --exec ts-node src/server.ts"
   },
   "dependencies": {
@@ -16,5 +18,6 @@
     "@types/restify": "^8.5.12",
     "nodemon": "^3.0.2",
     "ts-node": "^10.9.1"
+    ,"esbuild": "^0.21.5"
   }
 }

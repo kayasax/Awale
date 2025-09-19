@@ -6,9 +6,9 @@
   StatePropertyAccessor,
   TurnContext,
 } from 'botbuilder';
-import { createInitialState, applyMove, getLegalMoves, formatBoard } from '../../core/dist/core/src/engine.js';
-import { greedyStrategy } from '../../core/dist/core/src/ai/greedy.js';
-import { GameState } from '../../shared/dist/types.js';
+import { createInitialState, applyMove, getLegalMoves, formatBoard } from '../../core/src/engine';
+import { greedyStrategy } from '../../core/src/ai/greedy';
+import { GameState } from '../../shared/src/types';
 
 interface GameSession {
   state: GameState;
@@ -39,7 +39,7 @@ export class AwaleBot extends ActivityHandler {
     // Handle messages
     this.onMessage(async (context, next) => {
       const text = context.activity.text?.toLowerCase().trim() || '';
-      
+
       // Check for commands
       if (text === 'new game' || text === 'start') {
         await this.startNewGame(context);
@@ -103,7 +103,7 @@ Ready to play? Type **new game**!`;
     };
 
     await this.gameStateAccessor.set(context, gameSession);
-    
+
     await context.sendActivity(MessageFactory.text('🎮 **New Awale Game Started!**'));
     await this.displayGameState(context, gameSession.state);
     await context.sendActivity(MessageFactory.text(
@@ -113,7 +113,7 @@ Ready to play? Type **new game**!`;
 
   private async makePlayerMove(context: TurnContext, pitIndex: number): Promise<void> {
     const gameSession = await this.gameStateAccessor.get(context);
-    
+
     if (!gameSession) {
       await context.sendActivity(MessageFactory.text('No game in progress. Type **new game** to start!'));
       return;
@@ -149,7 +149,7 @@ Ready to play? Type **new game**!`;
 
       // AI's turn
       await context.sendActivity(MessageFactory.text('🤖 AI is thinking...'));
-      
+
       // Add a small delay for dramatic effect
       setTimeout(async () => {
         await this.makeAIMove(context, gameSession);
@@ -200,7 +200,7 @@ Ready to play? Type **new game**!`;
   private async displayGameState(context: TurnContext, state: GameState): Promise<void> {
     const boardDisplay = formatBoard(state);
     const score = `📊 **Score:** You: ${state.captured.A} | AI: ${state.captured.B}`;
-    
+
     await context.sendActivity(MessageFactory.text(`\`\`\`\n${boardDisplay}\n\`\`\`\n${score}`));
   }
 
@@ -213,7 +213,7 @@ Ready to play? Type **new game**!`;
 
   private async announceGameEnd(context: TurnContext, state: GameState): Promise<void> {
     let message = '🎊 **Game Over!**\n\n';
-    
+
     if (state.winner) {
       if (state.winner === 'A') {
         message += '🎉 **Congratulations! You won!** 👑\n';
@@ -223,10 +223,10 @@ Ready to play? Type **new game**!`;
     } else {
       message += '🤝 **It\'s a tie!** Well played!\n';
     }
-    
+
     message += `\n📊 Final Score: You: ${state.captured.A} | AI: ${state.captured.B}\n`;
     message += '\nType **new game** to play again!';
-    
+
     await context.sendActivity(MessageFactory.text(message));
   }
 

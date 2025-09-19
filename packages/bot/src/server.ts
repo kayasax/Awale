@@ -2,6 +2,11 @@
 import { AwaleBot } from './awaleBot';
 import * as restify from 'restify';
 
+console.log('[server] Initializing Awale Bot server bootstrap');
+console.log('[server] NODE_ENV=', process.env.NODE_ENV);
+console.log('[server] MICROSOFT_APP_ID present?', !!process.env.MICROSOFT_APP_ID);
+console.log('[server] MICROSOFT_APP_PASSWORD present?', !!process.env.MICROSOFT_APP_PASSWORD);
+
 // Create adapter and conversation state
 const adapter = new BotFrameworkAdapter({
   appId: process.env.MICROSOFT_APP_ID,
@@ -19,7 +24,7 @@ const bot = new AwaleBot(conversationState);
 adapter.onTurnError = async (context: TurnContext, error: Error) => {
   console.error('[onTurnError]:', error);
   await context.sendActivity('Sorry, it looks like something went wrong. Please try again.');
-  
+
   // Log conversation state for debugging
   if (conversationState) {
     try {

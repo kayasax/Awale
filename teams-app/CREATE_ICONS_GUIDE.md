@@ -8,7 +8,7 @@
 - Add small dots to represent game pits
 - Save as PNG
 
-### Outline Icon (outline.png) - 32x32px:  
+### Outline Icon (outline.png) - 32x32px:
 - Transparent background
 - White outline of a rectangle
 - Few white dots inside

@@ -18,11 +18,11 @@ console.log(JSON.stringify(card, null, 2));
 
 // Test 3: Make a move
 console.log('\n3. Making a move (pit 0)...');
-const moveResult = dispatchAction({ 
-  type: 'move', 
-  gameId: newGameResult.state.id!, 
-  pit: 0, 
-  v: newGameResult.state.version 
+const moveResult = dispatchAction({
+  type: 'move',
+  gameId: newGameResult.state.id!,
+  pit: 0,
+  v: newGameResult.state.version
 });
 console.log(`✅ ${moveResult.message}`);
 
@@ -32,12 +32,12 @@ const pveGameResult = dispatchAction({ type: 'new', withAI: true });
 console.log(`✅ ${pveGameResult.message}`);
 
 console.log('\n5. Making move with AI response...');
-const aiMoveResult = dispatchAction({ 
-  type: 'move', 
-  gameId: pveGameResult.state.id!, 
-  pit: 1, 
-  v: pveGameResult.state.version, 
-  ai: true 
+const aiMoveResult = dispatchAction({
+  type: 'move',
+  gameId: pveGameResult.state.id!,
+  pit: 1,
+  v: pveGameResult.state.version,
+  ai: true
 });
 console.log(`✅ ${aiMoveResult.message}`);
 

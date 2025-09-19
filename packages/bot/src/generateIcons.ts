@@ -6,19 +6,19 @@ import * as path from 'path';
 function createColorIcon() {
   const canvas = createCanvas(192, 192);
   const ctx = canvas.getContext('2d');
-  
+
   // Background gradient
   const gradient = ctx.createLinearGradient(0, 0, 192, 192);
   gradient.addColorStop(0, '#8B4513'); // Brown
   gradient.addColorStop(1, '#D2691E'); // Orange brown
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, 192, 192);
-  
+
   // Border
   ctx.strokeStyle = '#654321';
   ctx.lineWidth = 4;
   ctx.strokeRect(2, 2, 188, 188);
-  
+
   // Game board representation
   ctx.fillStyle = '#F4A460';
   // Top row of pits
@@ -33,13 +33,13 @@ function createColorIcon() {
     ctx.arc(32 + i * 26, 144, 10, 0, 2 * Math.PI);
     ctx.fill();
   }
-  
+
   // Title
   ctx.fillStyle = '#FFFFFF';
   ctx.font = 'bold 24px Arial';
   ctx.textAlign = 'center';
   ctx.fillText('AWALE', 96, 100);
-  
+
   return canvas.toBuffer('image/png');
 }
 
@@ -47,15 +47,15 @@ function createColorIcon() {
 function createOutlineIcon() {
   const canvas = createCanvas(32, 32);
   const ctx = canvas.getContext('2d');
-  
+
   // Transparent background
   ctx.clearRect(0, 0, 32, 32);
-  
+
   // White outline board
   ctx.strokeStyle = '#FFFFFF';
   ctx.lineWidth = 2;
   ctx.strokeRect(2, 2, 28, 28);
-  
+
   // Small pits
   ctx.fillStyle = '#FFFFFF';
   // Top row
@@ -70,7 +70,7 @@ function createOutlineIcon() {
     ctx.arc(8 + i * 8, 22, 2, 0, 2 * Math.PI);
     ctx.fill();
   }
-  
+
   return canvas.toBuffer('image/png');
 }
 

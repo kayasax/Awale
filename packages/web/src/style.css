@@ -1,0 +1,13 @@
+﻿.awale-container { font-family: system-ui, sans-serif; max-width: 860px; margin: 1.5rem auto; padding: 1rem; }
+header { margin-bottom: 1rem; }
+.status, .message, .winner { margin: .25rem 0; }
+.board { display: grid; gap: .5rem; }
+.row { display: flex; justify-content: space-between; }
+.pit { width: 70px; height: 70px; border-radius: 12px; border: 2px solid #444; background:#222; color:#eee; display:flex; flex-direction:column; justify-content:center; align-items:center; font-size:14px; position:relative; }
+.pit.highlight { outline: 3px solid #4caf50; }
+.pit:disabled { opacity: .45; }
+.pit .seeds { font-size: 20px; font-weight: 600; }
+.pit .index { font-size: 11px; opacity: .6; position:absolute; bottom:4px; right:6px; }
+.actions button { margin-right: .5rem; }
+.board-text { background:#111; color:#0f0; padding:.75rem; font-size:12px; }
+@media (max-width:600px){ .pit { width:50px; height:50px; } }

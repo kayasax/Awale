@@ -4,7 +4,7 @@
 
 ### 📦 **Teams App Package**: `awale-teams-app.zip`
 - ✅ Manifest with bot configuration
-- ✅ Color icon (192x192px) 
+- ✅ Color icon (192x192px)
 - ✅ Outline icon (32x32px)
 - ✅ Ready for sideloading to Teams!
 
@@ -22,7 +22,7 @@
 3. **Bot Handle**: `awale-game-bot-[your-name]`
 4. **Messaging Endpoint**: `https://your-ngrok-url.ngrok.io/api/messages`
 5. **Get credentials**:
-   - Copy **App ID** 
+   - Copy **App ID**
    - Generate and copy **App Password**
 6. **Enable Teams Channel** in bot registration
 
@@ -83,7 +83,7 @@ ngrok http 3978
 
 ### Game Flow:
 1. You play pits 0-5 (bottom row)
-2. AI plays pits 6-11 (top row) 
+2. AI plays pits 6-11 (top row)
 3. Capture seeds by ending on opponent's side with 2-3 seeds
 4. First to 25+ seeds wins!
 
@@ -93,7 +93,7 @@ ngrok http 3978
 # Terminal 1: Start bot
 npm run dev -w @awale/bot
 
-# Terminal 2: Start ngrok  
+# Terminal 2: Start ngrok
 ngrok http 3978
 
 # Use Bot Framework Emulator for quick testing
@@ -104,7 +104,7 @@ ngrok http 3978
 
 For hackathon submission, consider:
 1. **Azure App Service** - Host the bot
-2. **Azure Bot Service** - Production bot registration  
+2. **Azure Bot Service** - Production bot registration
 3. **GitHub Actions** - Auto-deployment
 4. **Teams App Store** - Organization-wide deployment
 

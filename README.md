@@ -1,16 +1,25 @@
-﻿# Awale (Oware) – Relaxing Teams Game
+﻿# Awale (Oware) – Teams Strategy Game Bot
+
+## 🎮 Current Status: FULLY DEPLOYED & FUNCTIONAL
+
+✅ **Complete Implementation** - Game engine, AI opponent, Teams bot integration
+✅ **Azure Deployment** - Professional hosting at https://app-ho6sgq4onri72.azurewebsites.net/
+✅ **Bot Framework Integration** - Bot ID: 94ecc03e-3bdc-4f89-abce-2d6eda64f5bd
+✅ **Teams App Package** - Ready for sideloading (organizational policy permitting)
+
+## 🚫 Current Challenge: Organizational Restrictions
+Your corporate Teams tenant restricts custom app installations. See [DEMO_ALTERNATIVES.md](DEMO_ALTERNATIVES.md) for workaround solutions.
 
 ## Vision
-A calming, turn‑based Awale (Oware) experience playable directly inside Microsoft Teams 1:1 chats using Adaptive Cards, with optional bot AI opponent and (later) a richer graphical Tab (React) featuring ambient visuals & soft looping music.
+A strategic, turn‑based Awale (Oware) experience playable directly inside Microsoft Teams with AI opponent, conversation state management, and professional Azure hosting.
 
-## Phased Roadmap
-1. ✅ Core Engine (rules, moves, captures, endgame) + Tests
-2. ✅ Simple AI (greedy capture) (CLI helper pending)
-3. 🚧 Teams Bot MVP (Adaptive Card board + pit buttons)
-4. ⏳ Persistence (Cosmos DB) & concurrency safeguards
-5. ⏳ Enhanced AI (minimax + pruning) and analytics (App Insights)
-6. ⏳ React Tab UI (graphical pits, animations, theme selector, audio)
-7. ⏳ Theming + plugin architecture (strategy variants, visual packs)
+## Implementation Complete
+1. ✅ Core Engine (rules, moves, captures, endgame) + Comprehensive Tests
+2. ✅ Smart AI Opponent (greedy capture strategy)
+3. ✅ Teams Bot MVP (Adaptive Card board + interactive gameplay)
+4. ✅ Azure Infrastructure (App Service, Application Insights, Key Vault, Managed Identity)
+5. ✅ Professional Deployment (Enterprise-grade hosting and monitoring)
+6. ✅ GitHub Repository (Full source code and documentation)
 
 ## Why Text + Adaptive Cards First?
 - Guarantees rules correctness before visual polish

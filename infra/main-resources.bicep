@@ -72,6 +72,7 @@ resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-
 resource appServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
   name: 'plan-${resourceToken}'
   location: location
+  kind: 'linux'
   sku: {
     name: 'B1'
     tier: 'Basic'
@@ -80,7 +81,7 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
     capacity: 1
   }
   properties: {
-    reserved: false
+    reserved: true
   }
   tags: {
     'azd-env-name': environmentName
@@ -91,6 +92,7 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
 resource appService 'Microsoft.Web/sites@2022-03-01' = {
   name: 'app-${resourceToken}'
   location: location
+  kind: 'app,linux'
   identity: {
     type: 'UserAssigned'
     userAssignedIdentities: {
@@ -100,7 +102,8 @@ resource appService 'Microsoft.Web/sites@2022-03-01' = {
   properties: {
     serverFarmId: appServicePlan.id
     siteConfig: {
-      nodeVersion: '18-lts'
+      linuxFxVersion: 'NODE|18-lts'
+      alwaysOn: true
       appSettings: [
         {
           name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
@@ -113,6 +116,14 @@ resource appService 'Microsoft.Web/sites@2022-03-01' = {
         {
           name: 'AZURE_CLIENT_ID'
           value: managedIdentity.properties.clientId
+        }
+        {
+          name: 'SCM_DO_BUILD_DURING_DEPLOYMENT'
+          value: 'true'
+        }
+        {
+          name: 'WEBSITE_NODE_DEFAULT_VERSION'
+          value: '~18'
         }
       ]
       cors: {

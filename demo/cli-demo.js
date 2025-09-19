@@ -40,7 +40,7 @@ function makeMove(pitIndex) {
 
 function playTurn() {
   displayBoard(gameState);
-  
+
   if (gameState.ended) {
     console.log('\n🎊 Game Over!');
     if (gameState.winner) {
@@ -56,7 +56,7 @@ function playTurn() {
     // Human player turn
     const legalMoves = getLegalMoves(gameState);
     console.log(`\n🎯 Your legal moves: [${legalMoves.join(', ')}]`);
-    
+
     rl.question('Choose a pit (0-5): ', (answer) => {
       const move = parseInt(answer.trim());
       if (isNaN(move)) {
@@ -64,7 +64,7 @@ function playTurn() {
         playTurn();
         return;
       }
-      
+
       if (makeMove(move)) {
         setTimeout(playTurn, 500); // Short pause before next turn
       } else {

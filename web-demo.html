@@ -1,0 +1,169 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Awale Game Bot - Web Demo</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #8B4513, #D2691E);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            margin: 10px 0;
+            opacity: 0.9;
+        }
+
+        .demo-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .instructions {
+            background: #f8f9fa;
+            border-left: 4px solid #8B4513;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        .instructions h3 {
+            margin-top: 0;
+            color: #8B4513;
+        }
+
+        .commands {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .command {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-weight: bold;
+        }
+
+        .webchat {
+            height: 500px;
+            border: 2px solid #8B4513;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .status {
+            text-align: center;
+            margin-top: 15px;
+            padding: 10px;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 5px;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎮 AWALE Game Bot</h1>
+        <p>Ancient African Strategy Game - Now in Microsoft Bot Framework!</p>
+        <p>Deployed on Azure • AI Opponent • Full Game Logic</p>
+    </div>
+
+    <div class="demo-container">
+        <div class="instructions">
+            <h3>🚀 How to Play</h3>
+            <p>Try these commands to interact with your Awale bot:</p>
+            <div class="commands">
+                <div class="command">new game</div>
+                <div class="command">help</div>
+                <div class="command">move 3</div>
+                <div class="command">quit</div>
+            </div>
+            <p><strong>Goal:</strong> Collect 25+ seeds to win! Sow seeds around the board and capture your opponent's pieces.</p>
+        </div>
+
+        <div class="webchat" id="webchat"></div>
+
+        <div class="status">
+            <strong>Status:</strong> Bot deployed at https://app-ho6sgq4onri72.azurewebsites.net/ •
+            Ready for Teams integration when organizational policies allow
+        </div>
+    </div>
+
+    <script src="https://cdn.botframework.com/botframework-webchat/latest/webchat.js"></script>
+    <script>
+        (async function () {
+            // For security, you'll need to implement a token server
+            // This is a placeholder - DO NOT use direct secret in production!
+
+            // You would typically get a token from your server like this:
+            // const res = await fetch('/api/token');
+            // const { token } = await res.json();
+
+            // For demo purposes, showing the structure:
+            const styleOptions = {
+                botAvatarBackgroundColor: '#8B4513',
+                userAvatarBackgroundColor: '#D2691E',
+                primaryFont: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+                bubbleBackground: '#f8f9fa',
+                bubbleFromUserBackground: '#8B4513',
+                bubbleFromUserTextColor: 'white'
+            };
+
+            // Note: For production, you need to implement secure token generation
+            // This demo structure shows how it would work with proper authentication
+            window.WebChat.renderWebChat({
+                // directLine: window.WebChat.createDirectLine({ token: token }),
+                styleOptions: styleOptions,
+                locale: 'en-US',
+                botAvatarInitials: 'AW',
+                userAvatarInitials: 'ME'
+            }, document.getElementById('webchat'));
+
+            // Show message if no token available
+            document.getElementById('webchat').innerHTML = `
+                <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; text-align: center; color: #666; padding: 20px;">
+                    <h3>🔐 Authentication Required</h3>
+                    <p>To complete the web demo, you need to:</p>
+                    <ol style="text-align: left;">
+                        <li>Enable Direct Line channel in Azure Bot Service</li>
+                        <li>Generate a Direct Line secret</li>
+                        <li>Configure the web chat authentication</li>
+                    </ol>
+                    <p style="margin-top: 20px;"><strong>Recommended Alternative:</strong> Use Azure Portal "Test in Web Chat"!</p>
+                    <p style="font-size: 0.9em; color: #888;">
+                        Go to: Azure Portal → Bot Services → Your Bot → Test in Web Chat
+                    </p>
+                </div>
+            `;
+        })();
+    </script>
+</body>
+</html>

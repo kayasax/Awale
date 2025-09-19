@@ -4,7 +4,7 @@ const path = require('path');
 // Create a simple 192x192 brown square PNG (base64 encoded)
 const colorIconBase64 = `iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==`;
 
-// Create a simple 32x32 transparent PNG (base64 encoded) 
+// Create a simple 32x32 transparent PNG (base64 encoded)
 const outlineIconBase64 = `iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==`;
 
 // For a hackathon demo, we'll create very basic placeholder files

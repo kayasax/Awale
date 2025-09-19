@@ -45,7 +45,7 @@ function makeMove(pit: number): boolean {
 
 async function playTurn() {
   displayBoard(gameState);
-  
+
   if (gameState.ended) {
     console.log('\n🎊 Game Over!');
     if (gameState.winner === 'Draw') {
@@ -66,14 +66,14 @@ async function playTurn() {
         rl.close();
         return;
       }
-      
+
       const pit = parseInt(input);
       if (isNaN(pit) || pit < 0 || pit > 5) {
         console.log('❌ Please enter a number between 0 and 5');
         playTurn();
         return;
       }
-      
+
       if (makeMove(pit)) {
         console.log(`✅ You played pit ${pit}`);
         setTimeout(playTurn, 500); // Brief pause before next turn

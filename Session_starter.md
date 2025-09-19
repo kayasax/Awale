@@ -43,7 +43,7 @@
 
 **Architecture Highlights:**
 - **Bot Framework Server**: Restify HTTP server with Bot Framework adapter
-- **Teams Integration**: Message handling, Adaptive Cards, conversation state management  
+- **Teams Integration**: Message handling, Adaptive Cards, conversation state management
 - **Game Flow**: Text-based commands (new game, 0-5 moves, help, quit)
 - **AI Opponent**: Automatic play with greedy strategy after human moves
 - **Visual Display**: Formatted ASCII board with score tracking

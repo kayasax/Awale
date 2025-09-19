@@ -11,7 +11,7 @@ For now, here are the specifications:
 - **Content**: "AWALE" text with simple game board representation
 - **Format**: PNG with solid background
 
-## Outline Icon (32x32px)  
+## Outline Icon (32x32px)
 - **File**: `outline.png`
 - **Size**: 32x32 pixels
 - **Background**: Transparent
