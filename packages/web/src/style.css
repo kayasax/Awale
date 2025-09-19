@@ -102,7 +102,7 @@ header { margin-bottom: 1rem; }
 @keyframes sparkle { 0% { opacity:0; transform:scale(.3) rotate(0deg); } 40% { opacity:1; transform:scale(1.05) rotate(25deg); } 70% { opacity:.9; } 100% { opacity:0; transform:scale(.4) rotate(60deg); } }
 
 /* Wood Theme -------------------------------------------------------- */
-.theme-wood .board-shell { 
+.theme-wood .board-shell {
 	background:
 		linear-gradient(145deg,#6d4925,#5a3c1d 55%, #4b3218 90%),
 		repeating-linear-gradient(25deg, #0000 0 10px, #00000008 10px 20px);
@@ -110,7 +110,7 @@ header { margin-bottom: 1rem; }
 	box-shadow:0 10px 28px -10px #000e, 0 0 0 1px #855d33 inset, 0 0 0 2px #0002 inset;
 }
 .theme-wood .board { gap:1rem; }
-.theme-wood .pit { 
+.theme-wood .pit {
 	background:
 		radial-gradient(circle at 30% 28%, #7a5430, #5c3d1f 65%),
 		linear-gradient(160deg,#6d4825,#5b3b1d 70%);
@@ -118,13 +118,13 @@ header { margin-bottom: 1rem; }
 	box-shadow: inset 0 3px 5px #0009, 0 2px 3px #000a, 0 0 0 1px #482c14, 0 0 8px -2px #000a;
 	color:#f8efea;
 }
-.theme-wood .row.ai .pit { 
+.theme-wood .row.ai .pit {
 	background:
 		radial-gradient(circle at 60% 25%, #845b34, #5f411f 65%),
 		linear-gradient(155deg,#724c28,#5c3d1f 70%);
 	border-color:#9a6a3b;
 }
-.theme-wood .pit::before { 
+.theme-wood .pit::before {
 	background:radial-gradient(circle at 35% 30%, #8a6036, #5a3b1d 70%);
 	opacity:.85;
 	box-shadow:inset 0 1px 2px #0006, inset 0 0 0 1px #734c28aa;
