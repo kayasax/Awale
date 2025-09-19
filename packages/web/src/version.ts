@@ -6,4 +6,4 @@ declare const process: any;
 export const APP_VERSION: string =
 	(typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env.VITE_APP_VERSION) ||
 	(typeof process !== 'undefined' && process.env && process.env.APP_VERSION) ||
-	'0.1.0-dev';
+	'0.4.0-multiplayer';
