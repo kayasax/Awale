@@ -2,7 +2,7 @@
 body { margin:0; }
 /* Global scenic background (image may be absent; gradients still give atmosphere) */
 body { background:
-	url('african-bg.jpg') center/cover no-repeat fixed,
+	url('../african-bg.jpg') center/cover no-repeat fixed,
 	radial-gradient(circle at 58% 34%, rgba(255,196,96,0.28), rgba(255,180,60,0) 45%),
 	linear-gradient(120deg, #2a2d30 0%, #3a2d25 40%, #1e2126 85%),
 	#1b1d1f; color:#e6e8ea; font-family: system-ui, sans-serif; }
