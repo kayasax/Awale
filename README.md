@@ -5,7 +5,9 @@
 ![Release](https://img.shields.io/github/v/tag/kayasax/Awale?label=latest%20tag)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
-> Modern, accessible implementation of Awale (Oware / Mancala family) with animated sowing, capture effects, subtle audio, theming, and a reusable rules engine.
+**▶ Live Demo:** https://kayasax.github.io/Awale/
+
+> Modern, accessible implementation of Awale (Oware / Mancala family) with animated sowing, capture effects, subtle audio, theming, and a reusable rules engine. **[Play it now →](https://kayasax.github.io/Awale/)**
 
 The original plan (a Microsoft Teams bot) was abandoned due to tenant restrictions. The project pivoted into a polished, self‑contained browser game powered by the same core engine. Azure/Bot artifacts remain in history but are no longer the focus.
 
