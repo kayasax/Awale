@@ -41,6 +41,7 @@ fs.mkdirSync(assetsDir, { recursive: true });
   // Remove any leading slashes from common asset references if present
   patched = patched.replace(/\/(assets\/[A-Za-z0-9._-]+)/g, '$1');
   patched = patched.replace(/\/african-bg.jpg/g, 'african-bg.jpg');
+  patched = patched.replace(/\/favicon.svg/g, 'favicon.svg');
   fs.writeFileSync(path.join(outDir, 'index.html'), patched, 'utf8');
 
   // Copy public assets (if present) to dist root
