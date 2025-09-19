@@ -1,83 +1,89 @@
-﻿# Awale (Oware) – Teams Strategy Game Bot
+﻿# Awale (Oware) – Web Game & Engine
 
-## 🎮 Current Status: FULLY DEPLOYED & FUNCTIONAL
+![Build](https://img.shields.io/github/actions/workflow/status/kayasax/Awale/build.yml?branch=master&label=CI)
+![Pages Deploy](https://img.shields.io/github/actions/workflow/status/kayasax/Awale/pages.yml?branch=master&label=Pages)
+![Release](https://img.shields.io/github/v/tag/kayasax/Awale?label=latest%20tag)
+![License](https://img.shields.io/badge/license-MIT-blue)
 
-✅ **Complete Implementation** - Game engine, AI opponent, Teams bot integration
-✅ **Azure Deployment** - Professional hosting at https://app-ho6sgq4onri72.azurewebsites.net/
-✅ **Bot Framework Integration** - Bot ID: 94ecc03e-3bdc-4f89-abce-2d6eda64f5bd
-✅ **Teams App Package** - Ready for sideloading (organizational policy permitting)
+> Modern, accessible implementation of Awale (Oware / Mancala family) with animated sowing, capture effects, subtle audio, theming, and a reusable rules engine.
 
-## 🚫 Current Challenge: Organizational Restrictions
-Your corporate Teams tenant restricts custom app installations. See [DEMO_ALTERNATIVES.md](DEMO_ALTERNATIVES.md) for workaround solutions.
+The original plan (a Microsoft Teams bot) was abandoned due to tenant restrictions. The project pivoted into a polished, self‑contained browser game powered by the same core engine. Azure/Bot artifacts remain in history but are no longer the focus.
 
-## Vision
-A strategic, turn‑based Awale (Oware) experience playable directly inside Microsoft Teams with AI opponent, conversation state management, and professional Azure hosting.
+## ✨ Features
+- Deterministic rules engine with starvation & capture logic
+- Greedy AI opponent (baseline strategy)
+- Animated sowing (per‑seed timing) + hand position indicator
+- Capture sparkles + gain/loss delta badges
+- Two themes (dark & wood) with unified scenic background
+- Subtle Web Audio feedback (drops, capture, game end)
+- Keyboard & screen‑reader friendly (aria-live updates, labeled pits)
+- Production build via custom esbuild script + Vite dev server
+- Dynamic version injection (footer shows current package version)
 
-## Implementation Complete
-1. ✅ Core Engine (rules, moves, captures, endgame) + Comprehensive Tests
-2. ✅ Smart AI Opponent (greedy capture strategy)
-3. ✅ Teams Bot MVP (Adaptive Card board + interactive gameplay)
-4. ✅ Azure Infrastructure (App Service, Application Insights, Key Vault, Managed Identity)
-5. ✅ Professional Deployment (Enterprise-grade hosting and monitoring)
-6. ✅ GitHub Repository (Full source code and documentation)
-
-## Why Text + Adaptive Cards First?
-- Guarantees rules correctness before visual polish
-- Faster iteration cycles in hackathon timeframe
-- Decouples deterministic engine from UI so we can reuse the same logic across bot, tests, and future graphical tab
-- Minimizes early complexity (no asset pipeline yet)
-
-Graphical artwork WILL come (Phase 6). Early separation means we can design a rendering adapter later without refactoring core logic.
-
-## Monorepo Structure
+## 🗂 Monorepo Structure
 ```
 packages/
-  core/      # Pure rules + AI strategies
-  shared/    # Shared types (lightweight)
-  bot/       # Teams Bot Framework integration (placeholder)
+  core/      # Pure engine + AI strategy
+  shared/    # Shared types
+  web/       # React/TypeScript frontend (vite dev + esbuild prod)
 ```
 
-## Commands
-Install (root installs all workspaces):
+## 🚀 Quick Start
+Clone & install (workspaces):
 ```
+git clone https://github.com/kayasax/Awale.git
+cd Awale
 npm install
 ```
-Build all:
+Run dev server (hot reload via Vite):
 ```
-npm run build
+npm run dev -w @awale/web
 ```
-Run tests (engine + future bot tests):
+Open: http://localhost:5173 (or the port Vite reports)
+
+Production build (esbuild):
+```
+npm run build -w @awale/web
+```
+Preview production build locally:
+```
+npm run preview -w @awale/web
+```
+
+## 🧪 Tests
+Engine tests placeholder (add under `packages/core`). Example command:
 ```
 npm test
 ```
-Dev bot (placeholder for now):
-```
-npm run dev:bot
-```
+(Add Jest or Vitest config as engine tests grow.)
 
-## Engine Design Notes
-- Immutable transformations (new state objects)
-- Array of 12 pits, captured counters per player
-- Starvation rule enforcement (feeding logic)
-- Capture chain scanning backwards across opponent row
+## 🔧 Build Details
+- Dev: Vite handles module graph & fast HMR.
+- Prod: Custom `build-esbuild.cjs` bundles `app.js`, copies CSS & public assets, injects version constant, produces relative paths for GitHub Pages.
+- GitHub Actions: `build.yml` (CI), `release.yml` (tag assets), `pages.yml` (deploy site to Pages with SPA 404 fallback).
 
-## Next Implementation Steps
-- [x] Greedy AI strategy (`packages/core/src/ai/greedy.ts`)
-- [x] Adaptive Card generator stub
-- [ ] Concurrency token check in repository abstraction (basic versioning present)
-- [ ] Move history & serialization helpers
-- [ ] CLI play script
-- [ ] Bot Framework adapter integration
+## 🌐 Deployment (GitHub Pages)
+The `pages.yml` workflow builds on pushes to `master` and publishes the `dist` output; assets use relative paths so it works under `/<repo>/`.
 
-## Future Graphical Tab (Preview Thoughts)
-- React + Fluent UI / Canvas hybrid for animated sowing
-- Soft color palette + subtle particle ambient layer
-- Audio: looped nature or kalimba track served from Blob Storage
-- Theme JSON: colors, pit texture refs, audio theme slug
+## 🔁 Roadmap Ideas
+- Stronger AI (minimax / heuristic pruning)
+- Optional difficulty levels
+- Move history & replay
+- Mobile layout refinements
+- Sound toggle persistence (localStorage)
+- PWA (offline play)
 
-## License
-TBD (personal hackathon project). Not yet open-sourced under a formal license.
+## 🧠 Engine Notes
+- 12 pit array (0‑5 player, 6‑11 AI)
+- Capture scanning backward across opponent row when final seed lands there with 2–3 seeds
+- Starvation prevention ensures opponent not left foodless unless unavoidable
 
-## Hackathon
-Registered in Microsoft Hackathon 2025:
-https://innovationstudio.microsoft.com/hackathons/hackathon2025/project/109939
+## 📄 License
+MIT (to be finalized) – consider this permissive; see upcoming LICENSE file.
+
+## 🙌 Acknowledgements
+Built during Hackathon 2025 iteration; pivoted from constrained Teams bot deployment to a clean web experience.
+
+## 📬 Feedback
+Issues and suggestions welcome via GitHub Issues.
+
