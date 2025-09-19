@@ -1,12 +1,14 @@
 ﻿{
   "name": "@awale/web",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -p tsconfig.json && vite build",
-    "preview": "vite preview"
+    "build:vite": "tsc -p tsconfig.json && vite build",
+    "build:esbuild": "node build-esbuild.cjs",
+    "build": "npm run build:esbuild",
+    "preview": "npx serve dist"
   },
   "dependencies": {
     "react": "^18.3.1",
