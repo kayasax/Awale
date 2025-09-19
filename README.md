@@ -73,10 +73,10 @@ The `pages.yml` workflow builds on pushes to `master` and publishes the `dist` o
 - Move history & replay
 - Mobile layout refinements
 - Sound/theme persistence (localStorage)
-- PWA update notification polish (DONE: core offline support implemented)
+- PWA update notification polish (core offline + installable shell shipped in 0.3.0)
 
-## 📱 PWA (Offline Support)
-The web client now includes a Progressive Web App layer:
+## 📱 PWA (Offline Support – since 0.3.0)
+The web client includes a Progressive Web App layer (introduced in version 0.3.0):
 - `manifest.webmanifest` with install metadata & theme colors
 - Service Worker (`sw.js`) precaches core shell (HTML, JS, CSS, background image, manifest, favicon)
 - Network‑first strategy for `index.html` ensures new deployments propagate
@@ -102,7 +102,7 @@ Load the served URL, then go offline and refresh—game should still load.
 - Starvation prevention ensures opponent not left foodless unless unavoidable
 
 ## 📄 License
-MIT (to be finalized) – consider this permissive; see upcoming LICENSE file.
+MIT (LICENSE file pending addition). All current source intended to be used under permissive MIT terms; formal file will be added in a subsequent commit.
 
 ## 🙌 Acknowledgements
 Built during Hackathon 2025 iteration; pivoted from constrained Teams bot deployment to a clean web experience.
