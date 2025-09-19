@@ -29,6 +29,9 @@ jobs:
           cp -r packages/web/dist/* site/
           # Basic index fallback if needed
           if [ ! -f site/index.html ]; then echo '<!doctype html><title>Awale</title><h1>Build Missing</h1>' > site/index.html; fi
+          # SPA fallback and disable Jekyll
+          cp site/index.html site/404.html
+          touch site/.nojekyll
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
