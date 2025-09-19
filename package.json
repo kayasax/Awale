@@ -1,15 +1,19 @@
 {
   "name": "awale-monorepo",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
+  "dependencies": {
+    "ws": "^8.17.0"
+  },
   "workspaces": [
     "packages/core",
     "packages/bot",
     "packages/shared",
-    "packages/web"
+    "packages/web",
+    "packages/server"
   ],
   "scripts": {
-    "build": "npm run build -w @awale/shared && npm run build -w @awale/core && npm run build -w @awale/bot",
+    "build": "npm run build -w @awale/shared && npm run build -w @awale/core && npm run build -w @awale/server && npm run build -w @awale/bot",
     "test": "jest --config jest.config.cjs --passWithNoTests",
     "lint": "eslint . --ext .ts",
     "dev:bot": "npm run dev -w @awale/bot",

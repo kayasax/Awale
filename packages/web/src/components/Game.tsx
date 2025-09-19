@@ -13,7 +13,8 @@ interface ViewState {
   lastCapturedPits?: number[];
 }
 
-export const Game: React.FC = () => {
+interface GameProps { onExit?: () => void }
+export const Game: React.FC<GameProps> = ({ onExit }) => {
   const [view, setView] = useState<ViewState>(() => ({
     state: createInitialState(),
     thinking: false,
@@ -262,10 +263,11 @@ export const Game: React.FC = () => {
           <div className="msg" role="status">{view.message}</div>
         </div>
         <div className="controls">
+          {onExit && <button className="btn" onClick={onExit}>Home</button>}
           <button className="btn" onClick={restart}>New Game</button>
           <button className="btn" onClick={() => alert(rulesText)}>Rules</button>
           <button className="btn mute" onClick={()=> setMuted((m:boolean)=> !m)} data-state={muted? 'off':'on'} aria-label={muted? 'Sound is muted, click to unmute':'Sound is on, click to mute'} title="Toggle sound">{muted? 'Unmute' : 'Mute'}</button>
-          <button className="btn" onClick={()=> setTheme(t=> t==='dark'?'wood':'dark')} aria-pressed={theme==='wood' ? 'true' : 'false'} title="Toggle wood theme">{theme==='wood' ? 'Dark Mode' : 'Wood Theme'}</button>
+          <button className="btn" onClick={()=> setTheme(t=> t==='dark'?'wood':'dark')} aria-pressed={theme==='wood'} title="Toggle wood theme">{theme==='wood' ? 'Dark Mode' : 'Wood Theme'}</button>
         </div>
       </header>
       <div className="board-shell">
