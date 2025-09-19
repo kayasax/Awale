@@ -34,8 +34,10 @@ fs.mkdirSync(assetsDir, { recursive: true });
 
   // Copy & patch index.html
   const indexSrc = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
-  // Replace entry script with relative path (no leading slash for GitHub Pages project site)
-  let patched = indexSrc.replace('/src/main.tsx', 'assets/app.js');
+  // Replace entry script and stylesheet with relative paths (no leading slash for GitHub Pages project site)
+  let patched = indexSrc
+    .replace('/src/main.tsx', 'assets/app.js')
+    .replace('/src/style.css', 'assets/style.css');
   // Remove any leading slashes from common asset references if present
   patched = patched.replace(/\/(assets\/[A-Za-z0-9._-]+)/g, '$1');
   patched = patched.replace(/\/african-bg.jpg/g, 'african-bg.jpg');
@@ -54,19 +56,10 @@ fs.mkdirSync(assetsDir, { recursive: true });
     }
   }
 
-  // Copy CSS directly
+  // Copy CSS directly (already referenced in patched index.html)
   const cssPath = path.join(__dirname, 'src', 'style.css');
   if (fs.existsSync(cssPath)) {
-    const cssOutDir = path.join(outDir, 'assets');
-    fs.mkdirSync(cssOutDir, { recursive: true });
-    fs.copyFileSync(cssPath, path.join(cssOutDir, 'style.css'));
-    // Inject link tag if not present
-    let html = fs.readFileSync(path.join(outDir, 'index.html'), 'utf8');
-    if (!html.includes('style.css')) {
-  html = html.replace('</head>', '  <link rel="stylesheet" href="assets/style.css" />\n</head>');
-      fs.writeFileSync(path.join(outDir, 'index.html'), html, 'utf8');
-    }
-    // Removed obsolete background image injection (single global background now)
+    fs.copyFileSync(cssPath, path.join(assetsDir, 'style.css'));
   }
 
   console.log('Esbuild production bundle complete. Dist at packages/web/dist');
