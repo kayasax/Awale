@@ -125,3 +125,6 @@ Thumbs.db
 
 # Teams app package
 *.zip
+
+# Project session memory (not needed in repo)
+Session_starter.md
