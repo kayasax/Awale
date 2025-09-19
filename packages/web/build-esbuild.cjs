@@ -32,6 +32,21 @@ fs.mkdirSync(assetsDir, { recursive: true });
     }
   });
 
+  // Build service worker (no bundling of app code needed, keep separate)
+  const swSrc = path.join(__dirname, 'src', 'sw.ts');
+  if (fs.existsSync(swSrc)) {
+    await esbuild.build({
+      entryPoints: [swSrc],
+      bundle: false,
+      format: 'esm',
+      sourcemap: false,
+      minify: true,
+      target: ['es2020'],
+      outfile: path.join(outDir, 'sw.js'),
+      define: { 'self.APP_VERSION': JSON.stringify(appVersion) }
+    });
+  }
+
   // Copy & patch index.html
   const indexSrc = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
   // Replace entry script and stylesheet with relative paths (no leading slash for GitHub Pages project site)
@@ -42,6 +57,7 @@ fs.mkdirSync(assetsDir, { recursive: true });
   patched = patched.replace(/\/(assets\/[A-Za-z0-9._-]+)/g, '$1');
   patched = patched.replace(/\/african-bg.jpg/g, 'african-bg.jpg');
   patched = patched.replace(/\/favicon.svg/g, 'favicon.svg');
+  patched = patched.replace(/\/manifest.webmanifest/g, 'manifest.webmanifest');
   fs.writeFileSync(path.join(outDir, 'index.html'), patched, 'utf8');
 
   // Copy public assets (if present) to dist root
