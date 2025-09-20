@@ -1,5 +1,14 @@
 ﻿body, html { height:100%; }
 body { margin:0; }
+
+/* Android-specific fixes for touch behavior */
+body {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
 /* Global scenic background (image may be absent; gradients still give atmosphere) */
 body { background:
 	url('../african-bg.jpg') center/cover no-repeat fixed,
@@ -11,9 +20,17 @@ body { background:
 header.topbar { margin-top:0; }
 header { margin-bottom: 1rem; }
 .status, .message, .winner { margin: .25rem 0; }
-.board { display: grid; gap: .5rem; }
+.board { display: grid; gap: .5rem; touch-action: manipulation; }
 .row { display: flex; justify-content: space-between; }
-.pit { width: 70px; height: 70px; border-radius: 12px; border: 2px solid #444; background:#222; color:#eee; display:flex; flex-direction:column; justify-content:center; align-items:center; font-size:14px; position:relative; transition: transform .25s ease, box-shadow .25s ease, background .35s ease; }
+.pit { 
+  width: 70px; height: 70px; border-radius: 12px; border: 2px solid #444; 
+  background:#222; color:#eee; display:flex; flex-direction:column; 
+  justify-content:center; align-items:center; font-size:14px; 
+  position:relative; 
+  transition: transform .25s ease, box-shadow .25s ease, background .35s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
 .pit.highlight { outline: 3px solid #4caf50; animation: pulse 1.8s infinite; }
 .pit.last-move { box-shadow: 0 0 0 3px #ffb300; }
 .pit.gain { animation: popGain 500ms ease; }
@@ -25,7 +42,20 @@ header { margin-bottom: 1rem; }
 	radial-gradient(circle at 40% 70%, #ffe082, transparent 60%);
 	opacity:0; animation: sparkle 900ms ease forwards; mix-blend-mode:screen; }
 .pit.captured::before { filter: blur(6px); }
-.pit:not(:disabled):active { transform: scale(.9); }
+
+/* Android-safe active states: Only apply :active transform on non-touch devices */
+@media (hover: hover) and (pointer: fine) {
+  .pit:not(:disabled):active { transform: scale(.9); }
+}
+
+/* On touch devices like Android, use a safer approach */
+@media (hover: none) and (pointer: coarse) {
+  .pit:not(:disabled).pressed { 
+    transform: scale(.95); 
+    transition: transform .1s ease;
+  }
+}
+
 .pit:disabled { opacity: .45; }
 .pit .seeds { font-size: 20px; font-weight: 600; }
 /* pit index removed visually */

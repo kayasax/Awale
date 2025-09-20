@@ -114,11 +114,30 @@ const Pit: React.FC<PitProps> = ({ label, seeds, disabled, highlight, onClick, l
   const maxSeeds = 10;
   const seedVisuals = Array.from({length: Math.min(seeds, maxSeeds)});
   const overflow = seeds - maxSeeds;
+  
+  // Android-safe touch handling
+  const handleTouchStart = (e: React.TouchEvent<HTMLButtonElement>) => {
+    if (!disabled && onClick) {
+      e.currentTarget.classList.add('pressed');
+    }
+  };
+  
+  const handleTouchEnd = (e: React.TouchEvent<HTMLButtonElement>) => {
+    e.currentTarget.classList.remove('pressed');
+  };
+  
+  const handleTouchCancel = (e: React.TouchEvent<HTMLButtonElement>) => {
+    e.currentTarget.classList.remove('pressed');
+  };
+  
   return (
     <button 
       className={"pit" + (highlight? ' highlight':'') + (lastMove? ' last-move':'') + (captured? ' captured':'') + (showDelta? (delta>0?' gain':' loss'):'') + (seeds===0? ' empty':'')} 
       disabled={disabled} 
       onClick={onClick} 
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchCancel}
       ref={pitRef}
       aria-label={`Pit ${label} with ${seeds} seeds`}
     >
