@@ -13,18 +13,24 @@ const App: React.FC = () => {
 	useEffect(() => {
 		const checkForJoinLink = () => {
 			const hash = window.location.hash;
+			console.log('🔍 Checking hash:', hash);
 			const joinMatch = hash.match(/^#join-(.+)$/);
 			if (joinMatch) {
 				const gameId = joinMatch[1];
 				console.log('🔗 Direct join link detected:', gameId);
+				console.log('🎮 Setting mode to online-join and gameInfo:', { code: gameId });
 				setMode('online-join');
 				setGameInfo({ code: gameId });
 				// Clear the hash to prevent re-processing
 				window.history.replaceState(null, '', window.location.pathname);
+				console.log('✅ Hash cleared, should now connect to multiplayer');
+			} else {
+				console.log('ℹ️ No join hash detected');
 			}
 		};
 		
 		// Check on initial load
+		console.log('🚀 App starting, checking for join link...');
 		checkForJoinLink();
 		
 		// Listen for hash changes (if user navigates back/forward)
@@ -32,8 +38,23 @@ const App: React.FC = () => {
 		return () => window.removeEventListener('hashchange', checkForJoinLink);
 	}, []);
 	
-	if (!mode) return <ModeSelector onSelect={(m, id) => { setMode(m); if (m==='online-join' && id) setGameInfo({ code: id }); }} />;
-	if (mode === 'ai') return <Game onExit={()=> { setMode(null); setGameInfo(null); }} />;
+	console.log('🎯 Current state:', { mode, gameInfo });
+	
+	if (!mode) {
+		console.log('📋 Rendering ModeSelector (no mode set)');
+		return <ModeSelector onSelect={(m, id) => { 
+			console.log('🎮 ModeSelector selected:', { mode: m, id }); 
+			setMode(m); 
+			if (m==='online-join' && id) setGameInfo({ code: id }); 
+		}} />;
+	}
+	
+	if (mode === 'ai') {
+		console.log('🤖 Rendering AI Game');
+		return <Game onExit={()=> { setMode(null); setGameInfo(null); }} />;
+	}
+	
+	console.log('🌐 Rendering OnlineGame with:', { mode, code: gameInfo?.code });
 	const serverUrl = (import.meta as any).env?.VITE_AWALE_SERVER_WS || (window as any).__AWALE_SERVER__ || 'wss://awale-server.livelybay-5ef501af.francecentral.azurecontainerapps.io/ws';
 	return <OnlineGame mode={mode} code={gameInfo?.code} onExit={()=> { setMode(null); setGameInfo(null); }} serverUrl={serverUrl} />;
 };
