@@ -198,6 +198,15 @@ export const OnlineGame: React.FC<Props> = ({
           setRegularMessage(`Opponent: ${msg.opponent}. Game ready!`);
           setBothPlayersConnected(true); // Both players now connected
           break;
+        case 'gameStarting':
+          console.log('🎲 Game starting with random selection:', msg);
+          const startingPlayerName = msg.startingPlayer === ourRole ? finalPlayerName : opponentName;
+          const isYourTurn = msg.startingPlayer === ourRole;
+          const startMessage = isYourTurn 
+            ? '🎲 You have been randomly selected to start! Make your first move.'
+            : `🎲 ${startingPlayerName} has been randomly selected to start.`;
+          setSuccessMessage(startMessage, 4000); // Show for 4 seconds
+          break;
         case 'state':
           console.log('📊 State received for gameId:', msg.gameId, 'current tracked gameId:', metaRef.current.gameId);
           console.log('🎮 Game state:', { 
@@ -542,7 +551,7 @@ Click the link or go to ${currentUrl} and enter the game code to play!`;
         <div className="controls">
           <button className="btn" onClick={onExit}>Home</button>
           <button className="btn mute" onClick={()=> setMuted(m => !m)} data-state={muted? 'off':'on'} aria-label={muted? 'Sound is muted, click to unmute':'Sound is on, click to mute'} title="Toggle sound">{muted? 'Unmute' : 'Mute'}</button>
-          <button className="btn" onClick={()=> setTheme(t=> t==='dark'?'wood':'dark')} aria-pressed={theme==='wood' ? 'true' : 'false'} title="Toggle wood theme">{theme==='wood' ? 'Dark Mode' : 'Wood Theme'}</button>
+          <button className="btn" onClick={()=> setTheme(t=> t==='dark'?'wood':'dark')} aria-pressed={theme==='wood'} title="Toggle wood theme">{theme==='wood' ? 'Dark Mode' : 'Wood Theme'}</button>
         </div>
       </header>
       
