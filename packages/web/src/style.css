@@ -394,9 +394,13 @@ header { margin-bottom: 1rem; }
 .theme-wood .pit.captured::after, .theme-wood .pit.captured::before { filter:brightness(1.25) saturate(1.15); }
 .theme-wood .seed { 
   background: url('./assets/graphics/seeds/seed-medium-brown.svg') center/cover no-repeat; 
+  /* Enhanced visibility for web deployment */
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.2);
+  border: 1px solid rgba(139, 105, 61, 0.3);
 }
+.theme-wood .seeds-count { background:#362214dc; border-color:#7a5330; color:#ffe9d1; }
 
-/* 🌑 Enhanced Dark Theme with True Pit Depressions - Updated 2025-09-20 22:59 -------- */
+/* 🌑 Enhanced Dark Theme with True Pit Depressions -------- */
 .theme-dark .pit {
 	background:
 		/* True carved pit effect - dark center, lighter edges */
@@ -446,21 +450,30 @@ header { margin-bottom: 1rem; }
 
 /* Enhanced wood theme seed variants */
 .theme-wood .seed.seed-dark-brown { 
-  background: url('./assets/graphics/seeds/seed-dark-brown.svg') center/cover no-repeat; 
+  background: url('./assets/graphics/seeds/seed-dark-brown.svg') center/cover no-repeat;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.2);
+  border: 1px solid rgba(139, 105, 61, 0.3);
 }
 .theme-wood .seed.seed-medium-brown { 
-  background: url('./assets/graphics/seeds/seed-medium-brown.svg') center/cover no-repeat; 
+  background: url('./assets/graphics/seeds/seed-medium-brown.svg') center/cover no-repeat;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.2);
+  border: 1px solid rgba(139, 105, 61, 0.3);
 }
 .theme-wood .seed.seed-light-brown { 
-  background: url('./assets/graphics/seeds/seed-light-brown.svg') center/cover no-repeat; 
+  background: url('./assets/graphics/seeds/seed-light-brown.svg') center/cover no-repeat;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.2);
+  border: 1px solid rgba(139, 105, 61, 0.3);
 }
 .theme-wood .seed.seed-speckled-tan { 
-  background: url('./assets/graphics/seeds/seed-speckled-tan.svg') center/cover no-repeat; 
+  background: url('./assets/graphics/seeds/seed-speckled-tan.svg') center/cover no-repeat;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.2);
+  border: 1px solid rgba(139, 105, 61, 0.3);
 }
 .theme-wood .seed.seed-stone-gray { 
-  background: url('./assets/graphics/seeds/seed-stone-gray.svg') center/cover no-repeat; 
+  background: url('./assets/graphics/seeds/seed-stone-gray.svg') center/cover no-repeat;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.2);
+  border: 1px solid rgba(139, 105, 61, 0.3);
 }
-.theme-wood .seeds-count { background:#362214dc; border-color:#7a5330; color:#ffe9d1; }
 .theme-wood .scores .score { background:#714b27; box-shadow:0 1px 2px #0009 inset, 0 0 0 1px #55371c; }
 .theme-wood .scores .score.you { color:#d6ffdc; }
 .theme-wood .scores .score.ai { color:#ffe8b2; }
