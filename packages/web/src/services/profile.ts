@@ -77,9 +77,13 @@ export class ProfileService {
       localStorage.setItem(PROFILE_ID_KEY, playerId);
     }
     
+    // Generate a unique default name using the last 4 characters of the ID
+    const uniqueSuffix = playerId.slice(-4).toUpperCase();
+    const defaultName = `Player${uniqueSuffix}`;
+    
     const profile: PlayerProfile = {
       id: playerId,
-      name: 'Player', // Default name, user can change
+      name: defaultName, // Unique default name based on player ID
       createdAt: Date.now(),
       stats: {
         gamesPlayed: 0,
@@ -118,7 +122,13 @@ export class ProfileService {
    */
   static updateName(name: string): PlayerProfile {
     const profile = this.getProfile();
-    profile.name = name.trim() || 'Player';
+    // If name is empty, generate a unique default name
+    if (!name.trim()) {
+      const uniqueSuffix = profile.id.slice(-4).toUpperCase();
+      profile.name = `Player${uniqueSuffix}`;
+    } else {
+      profile.name = name.trim();
+    }
     this.saveProfile(profile);
     return profile;
   }
@@ -246,13 +256,13 @@ export class ProfileService {
 }
 
 /**
- * Avatar utilities - predefined emoji/icon options
+ * Avatar utilities - predefined emoji/icon options (no duplicates)
  */
 export const AVATAR_OPTIONS = [
   '🌟', '🎮', '🏆', '🎯', '🔥', '⚡', '🎨', '🎭',
   '🚀', '💎', '👑', '🎲', '🎪', '🎊', '🎈', '🎁',
-  '🌈', '🌟', '⭐', '✨', '💫', '🌞', '🌙', '⚽',
-  '🏀', '🎾', '🏐', '🎳', '🎪', '🎨', '🎭', '🎬'
+  '🌈', '🌸', '⭐', '✨', '💫', '🌞', '🌙', '⚽',
+  '🏀', '🎾', '🏐', '🎳', '🥅', '🎸', '🎵', '🎬'
 ];
 
 /**

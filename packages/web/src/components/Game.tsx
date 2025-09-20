@@ -25,6 +25,10 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
     lastCapturedPits: []
   }));
 
+  // Get player profile
+  const playerProfile = ProfileService.getProfile();
+  const playerName = playerProfile.name || 'Player';
+
   // Refs for animation positioning
   const boardRef = useRef<HTMLDivElement | null>(null);
   const pitRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -34,7 +38,14 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
   const [displayPits, setDisplayPits] = useState<number[] | null>(null);
   const [handPos, setHandPos] = useState<{x:number;y:number}|null>(null);
   const [muted, setMuted] = useState(false);
-  const [theme, setTheme] = useState<'dark'|'wood'>('dark');
+  const [theme, setTheme] = useState<'dark'|'wood'>(playerProfile.preferences.theme);
+
+  // Load user preferences on mount
+  useEffect(() => {
+    const profile = ProfileService.getProfile();
+    setTheme(profile.preferences.theme);
+    setMuted(!profile.preferences.soundEnabled);
+  }, []);
 
   // Audio (top-level once)
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -277,8 +288,8 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
     }
   }, [view.state.ended, view.state.winner, view.state.captured.A, gameStartTime, gameResultRecorded]);
 
-  const score = `You: ${view.state.captured.A} | AI: ${view.state.captured.B}`;
-  const winner = view.state.ended ? (view.state.winner === 'A' ? 'You win!' : view.state.winner === 'B' ? 'AI wins.' : 'Draw.') : '';
+  const score = `${playerName}: ${view.state.captured.A} | AI: ${view.state.captured.B}`;
+  const winner = view.state.ended ? (view.state.winner === 'A' ? `${playerName} wins!` : view.state.winner === 'B' ? 'AI wins.' : 'Draw.') : '';
 
   // Apply background image via CSS variable to satisfy lint rule
   const containerClass = "awale-container theme-"+theme;
@@ -287,8 +298,8 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
       <header className="topbar">
         <h1 className="logo">Awale</h1>
         <div className="scorepanel" role="group" aria-label="Scores">
-          <div className="scores"><span className="score you" aria-label="Your score">You <strong>{view.state.captured.A}</strong></span><span className="score ai" aria-label="AI score">AI <strong>{view.state.captured.B}</strong></span></div>
-          <div className="turn">Turn: <strong>{view.state.currentPlayer === 'A' ? 'You' : 'AI'}</strong></div>
+          <div className="scores"><span className="score you" aria-label={`${playerName} score`}>{playerName} <strong>{view.state.captured.A}</strong></span><span className="score ai" aria-label="AI score">AI <strong>{view.state.captured.B}</strong></span></div>
+          <div className="turn">Turn: <strong>{view.state.currentPlayer === 'A' ? playerName : 'AI'}</strong></div>
           {winner && <div className="winner" role="status">{winner}</div>}
           <div className="msg" role="status">{view.message}</div>
         </div>

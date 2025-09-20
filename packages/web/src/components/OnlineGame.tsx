@@ -41,17 +41,11 @@ export const OnlineGame: React.FC<Props> = ({
   onExit, 
   serverUrl 
 }) => {
-  // Use playerName from props or fallback to existing logic
-  const finalPlayerName = playerName || propName || 'Player';
-  const finalPlayerId = playerId || 'player-' + Math.random().toString(36).substr(2, 8);
+  // Get player profile and use the actual player name
+  const profile = ProfileService.getProfile();
+  const finalPlayerName = playerName || propName || profile.name || 'Player';
+  const finalPlayerId = playerId || profile.id;
   
-  console.log('🎮 OnlineGame starting with:', { 
-    mode, 
-    code, 
-    finalPlayerName, 
-    finalPlayerId, 
-    serverUrl 
-  });
   const clientRef = useRef<OnlineClient | null>(null);
   const metaRef = useRef<LocalMeta>({});
   const boardRef = useRef<HTMLDivElement | null>(null);
@@ -65,11 +59,20 @@ export const OnlineGame: React.FC<Props> = ({
   const [meta, setMeta] = useState<LocalMeta>({});
   const [snapshot, setSnapshot] = useState<GameStateSnapshot | null>(null);
   const [message, setMessage] = useState<string>('Connecting...');
+  const [isSuccessMessage, setIsSuccessMessage] = useState(false);
   const [pendingMove, setPendingMove] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [opponentName, setOpponentName] = useState<string>('Opponent');
   const [muted, setMuted] = useState(false);
-  const [theme, setTheme] = useState<'dark'|'wood'>('dark');
+  const [theme, setTheme] = useState<'dark'|'wood'>(profile.preferences.theme);
   const [bothPlayersConnected, setBothPlayersConnected] = useState(false);
+  
+  // Load user preferences on mount
+  useEffect(() => {
+    const userProfile = ProfileService.getProfile();
+    setTheme(userProfile.preferences.theme);
+    setMuted(!userProfile.preferences.soundEnabled);
+  }, []);
   
   // Animation state for visual polish
   const [animState, setAnimState] = useState<AnimationState>({
@@ -88,6 +91,23 @@ export const OnlineGame: React.FC<Props> = ({
   // Audio system (matching single-player)
   const audioCtxRef = useRef<AudioContext | null>(null);
   const audioReadyRef = useRef(false);
+  
+  // Helper function to set messages with success state
+  const setSuccessMessage = (msg: string, duration = 3000) => {
+    setMessage(msg);
+    setIsSuccessMessage(true);
+    setTimeout(() => {
+      setIsSuccessMessage(false);
+      if (!bothPlayersConnected) {
+        setMessage('Waiting for opponent to join...');
+      }
+    }, duration);
+  };
+
+  const setRegularMessage = (msg: string) => {
+    setMessage(msg);
+    setIsSuccessMessage(false);
+  };
   
   useEffect(() => {
     if (audioReadyRef.current) return;
@@ -165,15 +185,17 @@ export const OnlineGame: React.FC<Props> = ({
           const createdMeta = { gameId: msg.gameId, playerToken: msg.playerToken, role: 'host' as const };
           metaRef.current = createdMeta;
           setMeta(createdMeta);
-          setMessage(`Game created. Share code: ${msg.gameId}. Waiting for opponent...`);
+          setRegularMessage(`Game created. Share code: ${msg.gameId}. Waiting for opponent...`);
           setBothPlayersConnected(false); // Host created, waiting for guest
           break;
         case 'joined':
-          console.log('👥 Game joined, updating with:', { gameId: msg.gameId, role: msg.role });
           const joinedMeta = { ...metaRef.current, gameId: msg.gameId, role: metaRef.current.role || msg.role };
           metaRef.current = joinedMeta;
           setMeta(joinedMeta);
-          setMessage(`Opponent: ${msg.opponent}. Game ready!`);
+          if (msg.opponent) {
+            setOpponentName(msg.opponent); // Store opponent name
+          }
+          setRegularMessage(`Opponent: ${msg.opponent}. Game ready!`);
           setBothPlayersConnected(true); // Both players now connected
           break;
         case 'state':
@@ -215,11 +237,13 @@ export const OnlineGame: React.FC<Props> = ({
               setTimeout(() => playTone('capture'), 200);
             }
           }
-          setMessage(`${msg.player} played pit ${msg.pit}${msg.captured? ' (captured '+msg.captured+')':''}`);
+          // Show actual player name instead of 'host'/'guest'
+          const playerName = msg.player === ourRole ? finalPlayerName : opponentName;
+          setRegularMessage(`${playerName} played pit ${msg.pit}${msg.captured? ' (captured '+msg.captured+')':''}`);
           break;
         case 'gameEnded':
           setSnapshot(msg.final);
-          setMessage('Game over.');
+          setRegularMessage('Game over.');
           playTone('end');
           break;
         case 'error':
@@ -429,8 +453,8 @@ export const OnlineGame: React.FC<Props> = ({
   const ourScore = snapshot ? (ourRole === 'host' ? snapshot.captured.A : snapshot.captured.B) : 0;
   const opponentScore = snapshot ? (ourRole === 'host' ? snapshot.captured.B : snapshot.captured.A) : 0;
   const winner = snapshot?.ended ? 
-    (snapshot.winner === (ourRole === 'host' ? 'A' : 'B') ? 'You win!' : 
-     snapshot.winner === (ourRole === 'host' ? 'B' : 'A') ? 'Opponent wins!' : 
+    (snapshot.winner === (ourRole === 'host' ? 'A' : 'B') ? `${finalPlayerName} wins!` : 
+     snapshot.winner === (ourRole === 'host' ? 'B' : 'A') ? `${opponentName} wins!` : 
      'Draw.') : '';
 
   // Copy invitation function
@@ -447,47 +471,70 @@ Click the link or go to ${currentUrl} and enter the game code to play!`;
 
     try {
       await navigator.clipboard.writeText(invitationMessage);
-      setMessage('✅ Invitation copied to clipboard!');
-      setTimeout(() => {
-        if (!bothPlayersConnected) {
-          setMessage('Waiting for opponent to join...');
-        }
-      }, 2000);
+      setSuccessMessage('🎉 Invitation copied to clipboard! Share it with your friend.');
+      playTone('capture'); // Play a pleasant sound for successful copy
     } catch (err) {
       console.error('Failed to copy invitation:', err);
-      setMessage('❌ Failed to copy invitation');
+      setRegularMessage('❌ Failed to copy invitation');
+    }
+  };
+
+  // Copy URL only function
+  const copyUrl = async () => {
+    if (!meta.gameId) return;
+    
+    const currentUrl = window.location.origin + window.location.pathname;
+    const joinUrl = `${currentUrl}#join-${meta.gameId}`;
+
+    try {
+      await navigator.clipboard.writeText(joinUrl);
+      setSuccessMessage('🔗 Game URL copied to clipboard!');
+      playTone('capture'); // Play a pleasant sound for successful copy
+    } catch (err) {
+      console.error('Failed to copy URL:', err);
+      setRegularMessage('❌ Failed to copy URL');
     }
   };
 
   const containerClass = "awale-container theme-"+theme;
+  
   return (
     <div className={containerClass}>
       <header className="topbar">
         <h1 className="logo">Awale Online</h1>
         <div className="scorepanel" role="group" aria-label="Scores">
           <div className="scores">
-            <span className="score you" aria-label="Your score">You <strong>{ourScore}</strong></span>
-            <span className="score ai" aria-label="Opponent score">Opponent <strong>{opponentScore}</strong></span>
+            <span className="score you" aria-label={`${finalPlayerName} score`}>{finalPlayerName} <strong>{ourScore}</strong></span>
+            <span className="score ai" aria-label="Opponent score">{opponentName} <strong>{opponentScore}</strong></span>
           </div>
           <div className="turn">
             Turn: <strong>
               {snapshot ? 
-                (snapshot.currentPlayer === (ourRole === 'host' ? 'A' : 'B') ? 'You' : 'Opponent')
+                (snapshot.currentPlayer === (ourRole === 'host' ? 'A' : 'B') ? finalPlayerName : opponentName)
                 : 'Connecting...'}
             </strong>
           </div>
           {winner && <div className="winner" role="status">{winner}</div>}
-          <div className="msg" role="status">{message}</div>
+          <div className={`msg ${isSuccessMessage ? 'success' : ''}`} role="status">{message}</div>
           {meta.gameId && (
             <div className="code-display">
               <div>Game Code: <code>{meta.gameId}</code></div>
-              <button 
-                className="btn copy-invite" 
-                onClick={copyInvitation}
-                title="Copy invitation message with game code and link"
-              >
-                📋 Copy Invitation
-              </button>
+              <div className="copy-buttons">
+                <button 
+                  className="btn copy-invite" 
+                  onClick={copyInvitation}
+                  title="Copy invitation message with game code and link"
+                >
+                  📋 Share Invite
+                </button>
+                <button 
+                  className="btn copy-url" 
+                  onClick={copyUrl}
+                  title="Copy game URL only"
+                >
+                  🔗 Copy URL
+                </button>
+              </div>
             </div>
           )}
           {error && <div className="error" role="alert">{error}</div>}
