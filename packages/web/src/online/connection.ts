@@ -38,17 +38,26 @@ export class OnlineClient {
         this.listeners.forEach(l => l(msg)); 
       } catch {/*ignore*/}
     };
-    this.ws.onclose = () => {
-      console.log('🔌 WebSocket closed, manualClose:', this.manualClose);
+    this.ws.onclose = (event) => {
+      console.log('🔌 WebSocket closed, manualClose:', this.manualClose, 'code:', event.code, 'reason:', event.reason);
       if (this.manualClose) return;
-      // basic exponential backoff reconnection skeleton (future token usage)
-      const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 15000);
-      this.reconnectAttempts++;
-      setTimeout(()=> this.connect(), delay);
+      
+      // Only reconnect for unexpected closures, not normal ones
+      if (event.code !== 1000 && event.code !== 1001) {
+        // basic exponential backoff reconnection skeleton (future token usage)
+        const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 15000);
+        this.reconnectAttempts++;
+        console.log(`🔄 Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts})`);
+        setTimeout(()=> this.connect(), delay);
+      }
     };
   }
 
-  close(){ this.manualClose = true; this.ws?.close(); }
+  close(){ 
+    this.manualClose = true; 
+    this.reconnectAttempts = 0; // Stop reconnection attempts
+    this.ws?.close(); 
+  }
 
   send(obj: any) {
     console.log('📤 Sending message:', obj);

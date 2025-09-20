@@ -18,10 +18,24 @@ interface LocalMeta {
   playerToken?: string;
 }
 
+// Animation and audio state for visual polish
+interface AnimationState {
+  animating: boolean;
+  displayPits: number[] | null;
+  handPos: {x: number; y: number} | null;
+  lastMovePit?: number;
+  lastCapturedPits: number[];
+  prevPits?: number[];
+}
+
 // Reuse local Game component for rendering board, but we'll override state transitions later.
 export const OnlineGame: React.FC<Props> = ({ mode, code, name='Player', onExit, serverUrl }) => {
   const clientRef = useRef<OnlineClient | null>(null);
   const metaRef = useRef<LocalMeta>({});
+  const boardRef = useRef<HTMLDivElement | null>(null);
+  const pitRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  
+  // State
   const [meta, setMeta] = useState<LocalMeta>({});
   const [snapshot, setSnapshot] = useState<GameStateSnapshot | null>(null);
   const [message, setMessage] = useState<string>('Connecting...');
@@ -29,8 +43,88 @@ export const OnlineGame: React.FC<Props> = ({ mode, code, name='Player', onExit,
   const [error, setError] = useState<string | null>(null);
   const [muted, setMuted] = useState(false);
   const [theme, setTheme] = useState<'dark'|'wood'>('dark');
+  const [bothPlayersConnected, setBothPlayersConnected] = useState(false);
+  
+  // Animation state for visual polish
+  const [animState, setAnimState] = useState<AnimationState>({
+    animating: false,
+    displayPits: null,
+    handPos: null,
+    lastMovePit: undefined,
+    lastCapturedPits: [],
+    prevPits: undefined
+  });
+
+  // Audio system (matching single-player)
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const audioReadyRef = useRef(false);
+  
+  useEffect(() => {
+    if (audioReadyRef.current) return;
+    if (typeof window === 'undefined') return;
+    const AC: any = (window as any).AudioContext || (window as any).webkitAudioContext;
+    if (!AC) return;
+    audioCtxRef.current = new AC();
+    audioReadyRef.current = true;
+    // Resume audio context on first user interaction
+    const unlock = () => {
+      if (!audioCtxRef.current) return;
+      if (audioCtxRef.current.state === 'suspended') {
+        audioCtxRef.current.resume().catch(()=>{});
+      }
+      window.removeEventListener('pointerdown', unlock);
+      window.removeEventListener('keydown', unlock);
+    };
+    window.addEventListener('pointerdown', unlock, { once: true });
+    window.addEventListener('keydown', unlock, { once: true });
+  }, []);
+
+  function playTone(kind: 'drop'|'capture'|'end') {
+    if (muted) return;
+    const ctx = audioCtxRef.current; 
+    if (!ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const now = ctx.currentTime;
+    let freq = 480;
+    let dur = 0.18;
+    let type: OscillatorType = 'sine';
+    if (kind==='capture'){ freq=520; dur=0.35; type='sine'; }
+    else if (kind==='end'){ freq=340; dur=0.9; type='sine'; }
+    else { freq = 470 + Math.random()*25; dur=0.14; type='sine'; }
+    osc.type = type;
+    osc.frequency.value = freq;
+    // Gentle attack & release
+    const peak = kind==='end' ? 0.12 : kind==='capture' ? 0.09 : 0.06;
+    gain.gain.setValueAtTime(0.00001, now);
+    gain.gain.linearRampToValueAtTime(peak, now + 0.04);
+    gain.gain.exponentialRampToValueAtTime(0.00001, now + dur);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + dur + 0.02);
+  }
+
+  function moveHandToPit(pitIndex: number) {
+    if (!boardRef.current) return;
+    const el = pitRefs.current[pitIndex];
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const boardRect = boardRef.current.getBoundingClientRect();
+    setAnimState(prev => ({
+      ...prev,
+      handPos: { 
+        x: rect.left - boardRect.left + rect.width/2, 
+        y: rect.top - boardRect.top + rect.height/2 
+      }
+    }));
+  }
 
   useEffect(() => {
+    // Prevent multiple connections in React StrictMode
+    if (clientRef.current) {
+      clientRef.current.close();
+    }
+    
     const client = new OnlineClient({ url: serverUrl });
     clientRef.current = client;
     const off = client.on((msg: ServerToClient) => {
@@ -41,14 +135,16 @@ export const OnlineGame: React.FC<Props> = ({ mode, code, name='Player', onExit,
           const createdMeta = { gameId: msg.gameId, playerToken: msg.playerToken, role: 'host' as const };
           metaRef.current = createdMeta;
           setMeta(createdMeta);
-          setMessage(`Game created. Share code: ${msg.gameId}`);
+          setMessage(`Game created. Share code: ${msg.gameId}. Waiting for opponent...`);
+          setBothPlayersConnected(false); // Host created, waiting for guest
           break;
         case 'joined':
           console.log('👥 Game joined, updating with:', { gameId: msg.gameId, role: msg.role });
           const joinedMeta = { ...metaRef.current, gameId: msg.gameId, role: metaRef.current.role || msg.role };
           metaRef.current = joinedMeta;
           setMeta(joinedMeta);
-          setMessage(`Opponent: ${msg.opponent}`);
+          setMessage(`Opponent: ${msg.opponent}. Game ready!`);
+          setBothPlayersConnected(true); // Both players now connected
           break;
         case 'state':
           console.log('📊 State received for gameId:', msg.gameId, 'current tracked gameId:', metaRef.current.gameId);
@@ -60,11 +156,41 @@ export const OnlineGame: React.FC<Props> = ({ mode, code, name='Player', onExit,
           setSnapshot(msg.state);
           break;
         case 'moveApplied':
+          // Animate all moves and handle capture effects for both players
+          if (snapshot && msg.pit !== undefined) {
+            // Always animate moves for both players
+            animateMove(msg.pit, snapshot.pits);
+            
+            const prevPits = snapshot.pits.slice();
+            const capturedCount = msg.captured || 0;
+            
+            // Detect captured pits for visual effects
+            let capturedPits: number[] = [];
+            if (capturedCount > 0) {
+              // Simple heuristic: find pits that went from >0 to 0 on opponent side
+              const opponentSide = msg.player === 'host' ? [6,7,8,9,10,11] : [0,1,2,3,4,5];
+              capturedPits = opponentSide.filter(p => prevPits[p] > 0 && prevPits[p] === 0);
+            }
+            
+            setAnimState(prev => ({ 
+              ...prev, 
+              prevPits,
+              lastMovePit: msg.pit,
+              lastCapturedPits: capturedPits
+            }));
+            
+            // Play sounds for all moves
+            playTone('drop');
+            if (capturedCount > 0) {
+              setTimeout(() => playTone('capture'), 200);
+            }
+          }
           setMessage(`${msg.player} played pit ${msg.pit}${msg.captured? ' (captured '+msg.captured+')':''}`);
           break;
         case 'gameEnded':
           setSnapshot(msg.final);
           setMessage('Game over.');
+          playTone('end');
           break;
         case 'error':
           console.error('❌ Server error:', msg);
@@ -85,17 +211,107 @@ export const OnlineGame: React.FC<Props> = ({ mode, code, name='Player', onExit,
     return () => { off(); client.close(); };
   }, [mode, code, name, serverUrl]);
 
+  // Update CSS vars for hand position relative to board
+  useEffect(() => {
+    const boardEl = boardRef.current;
+    if (!boardEl) return;
+    const container = boardEl.parentElement; // board-shell
+    if (!container) return;
+    if (!animState.handPos) {
+      container.style.removeProperty('--hand-x');
+      container.style.removeProperty('--hand-y');
+      return;
+    }
+    container.style.setProperty('--hand-x', animState.handPos.x + 'px');
+    container.style.setProperty('--hand-y', animState.handPos.y + 'px');
+  }, [animState.handPos]);
+
+  // Clean up hand position when not animating
+  useEffect(() => {
+    if (!animState.animating) {
+      setAnimState(prev => ({ ...prev, handPos: null }));
+    }
+  }, [animState.animating]);
+
+  function animateMove(pit: number, finalPits: number[]) {
+    if (animState.animating) return;
+    if (!snapshot) return;
+    
+    const seeds = snapshot.pits[pit];
+    if (seeds <= 0) return;
+    
+    const order: number[] = [];
+    for (let s=1; s<=seeds; s++) order.push((pit + s) % 12);
+    
+    const temp = snapshot.pits.slice();
+    temp[pit] = 0;
+    
+    setAnimState(prev => ({
+      ...prev,
+      animating: true,
+      displayPits: temp.slice(),
+      prevPits: snapshot.pits.slice()
+    }));
+    
+    moveHandToPit(pit);
+    
+    let step = 0;
+    const per = 130; // ms per seed drop
+    
+    function tick() {
+      if (step >= order.length) {
+        // Animation complete - update to final state
+        setAnimState(prev => ({
+          ...prev,
+          animating: false,
+          displayPits: null,
+          handPos: null,
+          lastMovePit: pit
+        }));
+        return;
+      }
+      
+      const target = order[step];
+      temp[target] += 1;
+      setAnimState(prev => ({
+        ...prev,
+        displayPits: temp.slice()
+      }));
+      
+      moveHandToPit(target);
+      playTone('drop');
+      step++;
+      setTimeout(tick, per);
+    }
+    
+    // Start animation
+    setTimeout(() => tick(), 10);
+  }
+
   // Translate local player perspective to pit clicks
   function handlePitClick(pit: number) {
     const currentMeta = metaRef.current;
-    console.log('🎯 Pit click attempt:', { pit, currentMeta, snapshot: !!snapshot });
+    console.log('🎯 Pit click attempt:', { pit, currentMeta, snapshot: !!snapshot, bothPlayersConnected });
     
     if (!snapshot || !currentMeta.gameId) {
       console.log('🚫 Cannot play: missing snapshot or gameId', { snapshot: !!snapshot, gameId: currentMeta.gameId });
       return;
     }
+    
+    // Check if both players are connected
+    if (!bothPlayersConnected) {
+      console.log('🚫 Cannot play: waiting for opponent to join');
+      setMessage('Waiting for opponent to join...');
+      return;
+    }
+    
     if (pendingMove !== null) {
       console.log('🚫 Cannot play: move pending');
+      return;
+    }
+    
+    if (animState.animating) {
+      console.log('🚫 Cannot play: animation in progress');
       return;
     }
     // Determine if it's our turn based on role
@@ -115,6 +331,13 @@ export const OnlineGame: React.FC<Props> = ({ mode, code, name='Player', onExit,
       return;
     }
     console.log('🎯 Playing pit:', pit, 'for gameId:', currentMeta.gameId, 'as player:', ourSide);
+    
+    // Start local animation immediately for responsiveness
+    if (snapshot) {
+      const tempSnapshot = { ...snapshot };
+      animateMove(pit, snapshot.pits);
+    }
+    
     clientRef.current?.send({ type: 'move', gameId: currentMeta.gameId, pit });
     setPendingMove(pit);
     setTimeout(()=> setPendingMove(null), 600);
@@ -171,8 +394,10 @@ export const OnlineGame: React.FC<Props> = ({ mode, code, name='Player', onExit,
       {snapshot && (
         <div className="board-shell">
           <BoardView
+            ref={boardRef}
+            pitRefs={pitRefs}
             state={{
-              pits: snapshot.pits,
+              pits: animState.displayPits || snapshot.pits,
               currentPlayer: snapshot.currentPlayer,
               interactiveSide: metaRef.current.role === 'host' ? 'A' : 'B',
               ended: snapshot.ended,
@@ -182,8 +407,15 @@ export const OnlineGame: React.FC<Props> = ({ mode, code, name='Player', onExit,
                 .filter(({i,v}) => v>0 && ((metaRef.current.role==='host' && i<6) || (metaRef.current.role==='guest' && i>=6)))
                 .map(o=> o.i),
             }}
+            canPlay={bothPlayersConnected && !pendingMove && !animState.animating && snapshot.currentPlayer === (metaRef.current.role === 'host' ? 'A' : 'B')}
             onPit={handlePitClick}
+            prev={animState.prevPits}
+            lastMovePit={animState.lastMovePit}
+            captured={animState.lastCapturedPits}
           />
+          {animState.animating && animState.handPos && (
+            <div className="hand" aria-hidden="true">✋</div>
+          )}
         </div>
       )}
     </div>
