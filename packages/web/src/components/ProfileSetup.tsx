@@ -165,7 +165,7 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({
             <button
               type="button"
               onClick={onCancel}
-              className="button button-secondary"
+              className="btn"
               disabled={isLoading}
             >
               Cancel
@@ -174,7 +174,7 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({
           <button
             type="button"
             onClick={handleSave}
-            className="button button-primary"
+            className="btn primary"
             disabled={isLoading}
           >
             {isLoading ? 'Saving...' : 'Save Profile'}

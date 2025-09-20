@@ -14,16 +14,32 @@ interface ViewState {
   lastCapturedPits?: number[];
 }
 
+// Function to create initial state with random starting player
+function createRandomizedInitialState(): GameState {
+  const state = createInitialState();
+  const randomStart = Math.random() < 0.5;
+  return {
+    ...state,
+    currentPlayer: randomStart ? 'A' : 'B' // 'A' = Player, 'B' = AI
+  };
+}
+
 interface GameProps { onExit?: () => void }
 export const Game: React.FC<GameProps> = ({ onExit }) => {
-  const [view, setView] = useState<ViewState>(() => ({
-    state: createInitialState(),
-    thinking: false,
-    message: 'Your turn — choose a pit (0-5)',
-    prevPits: undefined,
-    lastMovePit: undefined,
-    lastCapturedPits: []
-  }));
+  const [view, setView] = useState<ViewState>(() => {
+    const initialState = createRandomizedInitialState();
+    const isPlayerStart = initialState.currentPlayer === 'A';
+    return {
+      state: initialState,
+      thinking: !isPlayerStart, // If AI starts, set thinking to true
+      message: isPlayerStart 
+        ? '🎲 You have been randomly selected to start! Choose a pit (0-5)'
+        : '🎲 AI has been randomly selected to start first!',
+      prevPits: undefined,
+      lastMovePit: undefined,
+      lastCapturedPits: []
+    };
+  });
 
   // Get player profile
   const playerProfile = ProfileService.getProfile();
@@ -100,7 +116,18 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
   const canPlay = !view.state.ended && view.state.currentPlayer === 'A' && !view.thinking && !animating;
 
   function restart() {
-    setView({ state: createInitialState(), thinking: false, message: 'New game started!', prevPits: undefined, lastMovePit: undefined });
+    const initialState = createRandomizedInitialState();
+    const isPlayerStart = initialState.currentPlayer === 'A';
+    setView({
+      state: initialState,
+      thinking: !isPlayerStart, // If AI starts, set thinking to true
+      message: isPlayerStart 
+        ? '🎲 You have been randomly selected to start! Choose a pit (0-5)'
+        : '🎲 AI has been randomly selected to start first!',
+      prevPits: undefined,
+      lastMovePit: undefined,
+      lastCapturedPits: []
+    });
     setAnimating(false); setDisplayPits(null); setHandPos(null);
     setGameResultRecorded(false); // Reset for new game
   }

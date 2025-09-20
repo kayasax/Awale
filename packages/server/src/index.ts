@@ -25,6 +25,7 @@ interface GameSession {
 	createdAt: number;
 	updatedAt: number;
 	moveSeq: number;
+	startingPlayer?: 'host' | 'guest'; // Randomized first player
 }
 
 const games = new Map<string, GameSession>();
@@ -159,6 +160,33 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 						game.host.lastSeen = Date.now();
 						send(ws, { type: 'joined', gameId: game.id, role: 'host', opponent: game.guest?.name });
 						send(ws, { type: 'state', gameId: game.id, version: game.state.version || 0, state: toPublicState(game.state) });
+						
+						// Check if we need to randomize start (both players now connected)
+						if (!game.startingPlayer && game.guest?.connected) {
+							const randomStart = Math.random() < 0.5;
+							game.startingPlayer = randomStart ? 'host' : 'guest';
+							
+							console.log(`🎲 Game ${game.id}: Random start on reconnection - ${game.startingPlayer} (${game.startingPlayer === 'host' ? game.host.name : game.guest.name}) goes first`);
+							
+							if (game.startingPlayer === 'guest') {
+								game.state = { ...game.state, currentPlayer: 'B' };
+							}
+							
+							broadcast(game, { 
+								type: 'gameStarting', 
+								gameId: game.id, 
+								startingPlayer: game.startingPlayer,
+								message: `Random selection: ${game.startingPlayer === 'host' ? game.host.name : game.guest.name} starts first!`
+							});
+							
+							broadcast(game, { 
+								type: 'state', 
+								gameId: game.id, 
+								version: game.state.version || 0, 
+								state: toPublicState(game.state) 
+							});
+						}
+						
 						return;
 					}
 					
@@ -170,6 +198,33 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 						game.guest.lastSeen = Date.now();
 						send(ws, { type: 'joined', gameId: game.id, role: 'guest', opponent: game.host.name });
 						send(ws, { type: 'state', gameId: game.id, version: game.state.version || 0, state: toPublicState(game.state) });
+						
+						// Check if we need to randomize start (both players now connected)
+						if (!game.startingPlayer && game.host.connected) {
+							const randomStart = Math.random() < 0.5;
+							game.startingPlayer = randomStart ? 'host' : 'guest';
+							
+							console.log(`🎲 Game ${game.id}: Random start on guest reconnection - ${game.startingPlayer} (${game.startingPlayer === 'host' ? game.host.name : game.guest.name}) goes first`);
+							
+							if (game.startingPlayer === 'guest') {
+								game.state = { ...game.state, currentPlayer: 'B' };
+							}
+							
+							broadcast(game, { 
+								type: 'gameStarting', 
+								gameId: game.id, 
+								startingPlayer: game.startingPlayer,
+								message: `Random selection: ${game.startingPlayer === 'host' ? game.host.name : game.guest.name} starts first!`
+							});
+							
+							broadcast(game, { 
+								type: 'state', 
+								gameId: game.id, 
+								version: game.state.version || 0, 
+								state: toPublicState(game.state) 
+							});
+						}
+						
 						return;
 					}
 				}
@@ -190,6 +245,47 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 				send(ws, { type: 'joined', gameId: game.id, role: 'guest', opponent: game.host.name });
 				send(ws, { type: 'state', gameId: game.id, version: game.state.version || 0, state: toPublicState(game.state) });
 				if (game.host.ws && game.host.connected) send(game.host.ws, { type: 'joined', gameId: game.id, role: 'host', opponent: guest.name });
+				
+				// Randomize starting player when both players are connected
+				if (!game.startingPlayer && game.host.connected && game.guest.connected) {
+					const randomStart = Math.random() < 0.5;
+					game.startingPlayer = randomStart ? 'host' : 'guest';
+					
+					// Create appropriate messages
+					const startMessages = {
+						host: game.startingPlayer === 'host' 
+							? `🎲 You have been randomly selected to start the game!` 
+							: `🎲 ${game.guest.name} has been randomly selected to start the game.`,
+						guest: game.startingPlayer === 'guest' 
+							? `🎲 You have been randomly selected to start the game!` 
+							: `🎲 ${game.host.name} has been randomly selected to start the game.`
+					};
+					
+					console.log(`🎲 Game ${game.id}: Random start selected - ${game.startingPlayer} (${game.startingPlayer === 'host' ? game.host.name : game.guest.name}) goes first`);
+					
+					// If guest was selected to start, we need to modify the game state
+					if (game.startingPlayer === 'guest') {
+						// Switch the current player from 'A' to 'B' so guest starts
+						game.state = { ...game.state, currentPlayer: 'B' };
+						console.log(`🎲 Game state updated: guest (player B) starts first`);
+					}
+					
+					// Notify both players about who starts
+					broadcast(game, { 
+						type: 'gameStarting', 
+						gameId: game.id, 
+						startingPlayer: game.startingPlayer,
+						message: `Random selection: ${game.startingPlayer === 'host' ? game.host.name : game.guest.name} starts first!`
+					});
+					
+					// Send updated state to reflect starting player change
+					broadcast(game, { 
+						type: 'state', 
+						gameId: game.id, 
+						version: game.state.version || 0, 
+						state: toPublicState(game.state) 
+					});
+				}
 				break;
 			}
 			case 'move': {

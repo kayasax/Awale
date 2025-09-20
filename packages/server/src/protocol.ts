@@ -9,6 +9,7 @@ export type ClientToServer =
 export type ServerToClient =
 	| { type: 'created'; gameId: string; playerToken: string }
 	| { type: 'joined'; gameId: string; role: 'host' | 'guest'; opponent?: string }
+	| { type: 'gameStarting'; gameId: string; startingPlayer: 'host' | 'guest'; message: string }
 	| { type: 'state'; gameId: string; version: number; state: any }
 	| { type: 'moveApplied'; gameId: string; seq: number; pit: number; player: 'host' | 'guest'; version: number; captured?: number }
 	| { type: 'error'; code: string; message: string }
