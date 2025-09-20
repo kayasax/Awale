@@ -3,27 +3,16 @@ import { createRoot } from 'react-dom/client';
 import { Game } from './components/Game';
 import { ModeSelector } from './components/ModeSelector';
 import { OnlineGame } from './components/OnlineGame';
+import { ProfileService } from './services/profile';
 // style.css now linked directly in index.html to avoid esbuild processing of background image path
 
 const App: React.FC = () => {
 	const [mode, setMode] = useState<'ai' | 'online-create' | 'online-join' | null>(null);
 	const [gameInfo, setGameInfo] = useState<{ code?: string; role?: string } | null>(null);
 	
-	// Generate or retrieve persistent player ID
-	const getPlayerId = () => {
-		let playerId = localStorage.getItem('awale-player-id');
-		if (!playerId) {
-			playerId = 'player-' + Math.random().toString(36).substr(2, 8);
-			localStorage.setItem('awale-player-id', playerId);
-		}
-		return playerId;
-	};
-	
-	// Get or set player name  
-	const getPlayerName = () => {
-		const stored = localStorage.getItem('awale-player-name');
-		return stored || 'Player';
-	};
+	// Use ProfileService for player data
+	const getPlayerId = () => ProfileService.getPlayerId();
+	const getPlayerName = () => ProfileService.getPlayerName();
 	
 	const playerName = getPlayerName();
 	

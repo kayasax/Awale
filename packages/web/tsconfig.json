@@ -3,7 +3,11 @@
   "compilerOptions": {
     "jsx": "react-jsx",
     "outDir": "dist",
-    "rootDir": "../.."
+    "rootDir": "../..",
+    "module": "ES2020",
+    "target": "ES2020",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "types": ["vite/client", "node"]
   },
   "include": ["src", "../core/src", "../shared/src"],
   "references": []

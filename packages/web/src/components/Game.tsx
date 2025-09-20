@@ -2,6 +2,7 @@
 import { APP_VERSION } from '../version';
 import { createInitialState, applyMove, getLegalMoves, formatBoard } from '../../../core/src/engine';
 import { greedyStrategy } from '../../../core/src/ai/greedy';
+import { ProfileService } from '../services/profile';
 import type { GameState } from '../../../shared/src/types';
 
 interface ViewState {
@@ -24,6 +25,10 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
     lastCapturedPits: []
   }));
 
+  // Get player profile
+  const playerProfile = ProfileService.getProfile();
+  const playerName = playerProfile.name || 'Player';
+
   // Refs for animation positioning
   const boardRef = useRef<HTMLDivElement | null>(null);
   const pitRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -33,7 +38,14 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
   const [displayPits, setDisplayPits] = useState<number[] | null>(null);
   const [handPos, setHandPos] = useState<{x:number;y:number}|null>(null);
   const [muted, setMuted] = useState(false);
-  const [theme, setTheme] = useState<'dark'|'wood'>('dark');
+  const [theme, setTheme] = useState<'dark'|'wood'>(playerProfile.preferences.theme);
+
+  // Load user preferences on mount
+  useEffect(() => {
+    const profile = ProfileService.getProfile();
+    setTheme(profile.preferences.theme);
+    setMuted(!profile.preferences.soundEnabled);
+  }, []);
 
   // Audio (top-level once)
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -90,6 +102,7 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
   function restart() {
     setView({ state: createInitialState(), thinking: false, message: 'New game started!', prevPits: undefined, lastMovePit: undefined });
     setAnimating(false); setDisplayPits(null); setHandPos(null);
+    setGameResultRecorded(false); // Reset for new game
   }
 
   function moveHandToPit(pitIndex: number) {
@@ -247,8 +260,36 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
     if (!animating) setHandPos(null);
   }, [animating]);
 
-  const score = `You: ${view.state.captured.A} | AI: ${view.state.captured.B}`;
-  const winner = view.state.ended ? (view.state.winner === 'A' ? 'You win!' : view.state.winner === 'B' ? 'AI wins.' : 'Draw.') : '';
+  // Game result tracking - record statistics when game ends
+  const [gameStartTime] = useState(Date.now());
+  const [gameResultRecorded, setGameResultRecorded] = useState(false);
+  
+  useEffect(() => {
+    if (view.state.ended && !gameResultRecorded) {
+      const gameEndTime = Date.now();
+      const gameDuration = (gameEndTime - gameStartTime) / 1000; // Convert to seconds
+      
+      const gameResult = {
+        won: view.state.winner === 'A',
+        seedsCaptured: view.state.captured.A,
+        gameDuration,
+        opponent: 'AI',
+        timestamp: gameEndTime
+      };
+      
+      try {
+        ProfileService.recordGameResult(gameResult);
+        console.log('🎮 Game result recorded:', gameResult);
+      } catch (error) {
+        console.error('Failed to record game result:', error);
+      }
+      
+      setGameResultRecorded(true);
+    }
+  }, [view.state.ended, view.state.winner, view.state.captured.A, gameStartTime, gameResultRecorded]);
+
+  const score = `${playerName}: ${view.state.captured.A} | AI: ${view.state.captured.B}`;
+  const winner = view.state.ended ? (view.state.winner === 'A' ? `${playerName} wins!` : view.state.winner === 'B' ? 'AI wins.' : 'Draw.') : '';
 
   // Apply background image via CSS variable to satisfy lint rule
   const containerClass = "awale-container theme-"+theme;
@@ -257,8 +298,8 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
       <header className="topbar">
         <h1 className="logo">Awale</h1>
         <div className="scorepanel" role="group" aria-label="Scores">
-          <div className="scores"><span className="score you" aria-label="Your score">You <strong>{view.state.captured.A}</strong></span><span className="score ai" aria-label="AI score">AI <strong>{view.state.captured.B}</strong></span></div>
-          <div className="turn">Turn: <strong>{view.state.currentPlayer === 'A' ? 'You' : 'AI'}</strong></div>
+          <div className="scores"><span className="score you" aria-label={`${playerName} score`}>{playerName} <strong>{view.state.captured.A}</strong></span><span className="score ai" aria-label="AI score">AI <strong>{view.state.captured.B}</strong></span></div>
+          <div className="turn">Turn: <strong>{view.state.currentPlayer === 'A' ? playerName : 'AI'}</strong></div>
           {winner && <div className="winner" role="status">{winner}</div>}
           <div className="msg" role="status">{view.message}</div>
         </div>
