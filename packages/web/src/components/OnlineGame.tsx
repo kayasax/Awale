@@ -352,6 +352,32 @@ export const OnlineGame: React.FC<Props> = ({ mode, code, name='Player', onExit,
      snapshot.winner === (ourRole === 'host' ? 'B' : 'A') ? 'Opponent wins!' : 
      'Draw.') : '';
 
+  // Copy invitation function
+  const copyInvitation = async () => {
+    if (!meta.gameId) return;
+    
+    const currentUrl = window.location.origin + window.location.pathname;
+    const invitationMessage = `🎮 Join me for an Awale game!
+
+Game Code: ${meta.gameId}
+Direct Link: ${currentUrl}#join-${meta.gameId}
+
+Click the link or go to ${currentUrl} and enter the game code to play!`;
+
+    try {
+      await navigator.clipboard.writeText(invitationMessage);
+      setMessage('✅ Invitation copied to clipboard!');
+      setTimeout(() => {
+        if (!bothPlayersConnected) {
+          setMessage('Waiting for opponent to join...');
+        }
+      }, 2000);
+    } catch (err) {
+      console.error('Failed to copy invitation:', err);
+      setMessage('❌ Failed to copy invitation');
+    }
+  };
+
   const containerClass = "awale-container theme-"+theme;
   return (
     <div className={containerClass}>
@@ -373,7 +399,14 @@ export const OnlineGame: React.FC<Props> = ({ mode, code, name='Player', onExit,
           <div className="msg" role="status">{message}</div>
           {meta.gameId && (
             <div className="code-display">
-              Game Code: <code>{meta.gameId}</code>
+              <div>Game Code: <code>{meta.gameId}</code></div>
+              <button 
+                className="btn copy-invite" 
+                onClick={copyInvitation}
+                title="Copy invitation message with game code and link"
+              >
+                📋 Copy Invitation
+              </button>
             </div>
           )}
           {error && <div className="error" role="alert">{error}</div>}

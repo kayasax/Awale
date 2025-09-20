@@ -59,8 +59,31 @@ header { margin-bottom: 1rem; }
 .turn { font-size:.75rem; opacity:.85; letter-spacing:.5px; color:#d0d4da; }
 .winner { font-weight:600; color:#ffec6b; text-shadow:0 0 6px #ffeb3b55; }
 .msg { font-size:.75rem; color:#d6d9de; max-width:260px; line-height:1.25; }
-.code-display { font-size:.75rem; color:#ffb300; font-weight:600; margin-top:.5rem; }
-.code-display code { background:#1a1d20; padding:.25rem .5rem; border-radius:4px; font-family: 'Courier New', monospace; }
+.code-display { 
+  font-size:.75rem; 
+  color:#ffb300; 
+  font-weight:600; 
+  margin-top:.5rem; 
+  display: flex; 
+  align-items: center; 
+  gap: 0.75rem; 
+  flex-wrap: wrap;
+}
+.code-display code { 
+  background:#1a1d20; 
+  padding:.25rem .5rem; 
+  border-radius:4px; 
+  font-family: 'Courier New', monospace; 
+}
+.copy-invite {
+  font-size: .7rem !important;
+  padding: .375rem .6rem !important;
+  background: #2d5a3d !important;
+  border-color: #4a8c61 !important;
+}
+.copy-invite:hover:not(:disabled) {
+  background: #35704a !important;
+}
 .loading { text-align: center; padding: 2rem; color: #d6d9de; font-size: 1rem; }
 .controls { display:flex; gap:.5rem; align-items:center; }
 .btn { background:#2d2f33; color:#eee; border:1px solid #3d4147; padding:.5rem .9rem; border-radius:8px; font-size:.8rem; cursor:pointer; font-weight:500; letter-spacing:.5px; transition:background .25s, transform .15s, box-shadow .25s; }
@@ -152,6 +175,13 @@ header { margin-bottom: 1rem; }
 .theme-wood .btn:hover:not(:disabled) { background:#7a532e; }
 .theme-wood .btn.mute[data-state='off'] { background:#7a2f2f; color:#ffd1d1; }
 .theme-wood .btn:focus-visible { outline-color:#ffc342; }
+.theme-wood .copy-invite {
+  background: #4a5c2d !important;
+  border-color: #617a3f !important;
+}
+.theme-wood .copy-invite:hover:not(:disabled) {
+  background: #5a7035 !important;
+}
 .theme-wood .logo { color:#ffe9d4; text-shadow:0 3px 8px #000c, 0 0 6px #ffcf8c55; letter-spacing:1px; }
 .theme-wood .msg { color:#f2e2d5; }
 .theme-wood .turn { color:#ffe3c0; }
