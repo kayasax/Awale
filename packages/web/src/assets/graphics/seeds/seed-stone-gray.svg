@@ -1,0 +1,82 @@
+﻿<svg xmlns="http://www.w3.org/2000/40 40" width="40" height="40">
+  <defs>
+    <!-- Stone-gray seed with natural variation -->
+    <radialGradient id="stone-base" cx="40%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#8A8A8A"/>
+      <stop offset="25%" stop-color="#757575"/>
+      <stop offset="50%" stop-color="#666666"/>
+      <stop offset="75%" stop-color="#575757"/>
+      <stop offset="100%" stop-color="#484848"/>
+    </radialGradient>
+    
+    <!-- Highlight for natural stone sheen -->
+    <radialGradient id="stone-highlight" cx="30%" cy="20%" r="45%">
+      <stop offset="0%" stop-color="#A8A8A8" stop-opacity="0.7"/>
+      <stop offset="40%" stop-color="#959595" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#828282" stop-opacity="0.0"/>
+    </radialGradient>
+    
+    <!-- Stone texture pattern with mineral flecks -->
+    <pattern id="stone-texture" x="0" y="0" width="6" height="6" patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="transparent"/>
+      <!-- Dark mineral spots -->
+      <circle cx="1.5" cy="1.5" r="0.3" fill="#3D3D3D" opacity="0.5"/>
+      <circle cx="4" cy="2" r="0.2" fill="#424242" opacity="0.4"/>
+      <circle cx="2" cy="4.5" r="0.25" fill="#3A3A3A" opacity="0.6"/>
+      <circle cx="5" cy="5" r="0.15" fill="#464646" opacity="0.4"/>
+      <circle cx="0.5" cy="3.5" r="0.2" fill="#404040" opacity="0.5"/>
+      <!-- Light mineral flecks -->
+      <circle cx="3.5" cy="1" r="0.1" fill="#A0A0A0" opacity="0.7"/>
+      <circle cx="1" cy="2.5" r="0.12" fill="#989898" opacity="0.6"/>
+      <circle cx="4.5" cy="3.5" r="0.08" fill="#9C9C9C" opacity="0.5"/>
+      <circle cx="2.5" cy="5.5" r="0.1" fill="#949494" opacity="0.6"/>
+    </pattern>
+    
+    <!-- Drop shadow filter -->
+    <filter id="stone-shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+      <feOffset dx="1.5" dy="2.5" result="offset"/>
+      <feFlood flood-color="#2A2A2A" flood-opacity="0.7"/>
+      <feComposite in2="offset" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Main seed body -->
+  <ellipse cx="20" cy="22" rx="16" ry="18" 
+           fill="url(#stone-base)" 
+           filter="url(#stone-shadow)"/>
+  
+  <!-- Stone texture overlay -->
+  <ellipse cx="20" cy="22" rx="16" ry="18" 
+           fill="url(#stone-texture)" 
+           opacity="0.7"/>
+  
+  <!-- Top highlight for polished stone effect -->
+  <ellipse cx="20" cy="22" rx="16" ry="18" 
+           fill="url(#stone-highlight)"/>
+  
+  <!-- Natural stone striations -->
+  <g fill="none" stroke="#525252" stroke-width="0.5" opacity="0.4">
+    <path d="M10,18 Q20,16 30,18"/>
+    <path d="M8,24 Q20,22 32,24"/>
+    <path d="M12,30 Q20,28 28,30"/>
+  </g>
+  
+  <!-- Darker striations for depth -->
+  <g fill="none" stroke="#404040" stroke-width="0.3" opacity="0.5">
+    <path d="M11,20 Q20,19 29,20"/>
+    <path d="M9,26 Q20,25 31,26"/>
+  </g>
+  
+  <!-- Side shading for roundness -->
+  <ellipse cx="7" cy="22" rx="2.5" ry="15" 
+           fill="#525252" 
+           opacity="0.4"/>
+  <ellipse cx="33" cy="22" rx="2.5" ry="15" 
+           fill="#404040" 
+           opacity="0.4"/>
+</svg>

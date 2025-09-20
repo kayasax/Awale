@@ -1,0 +1,41 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <defs>
+    <!-- Realistic seed gradient -->
+    <radialGradient id="seed1-gradient" cx="0.35" cy="0.25" r="0.8">
+      <stop offset="0%" stop-color="#BC9A6A"/>
+      <stop offset="30%" stop-color="#A0522D"/>
+      <stop offset="70%" stop-color="#8B4513"/>
+      <stop offset="100%" stop-color="#654321"/>
+    </radialGradient>
+    
+    <!-- Highlight gradient for 3D effect -->
+    <radialGradient id="seed1-highlight" cx="0.3" cy="0.2" r="0.4">
+      <stop offset="0%" stop-color="#D2B48C" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#D2B48C" stop-opacity="0"/>
+    </radialGradient>
+    
+    <!-- Shadow filter -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="1" dy="1.5" stdDeviation="1" flood-opacity="0.4" flood-color="#2F1B14"/>
+    </filter>
+  </defs>
+  
+  <!-- Main seed body with organic shape -->
+  <ellipse cx="12" cy="12" rx="9" ry="11" 
+           fill="url(#seed1-gradient)" 
+           filter="url(#shadow)" 
+           transform="rotate(-8 12 12)"/>
+  
+  <!-- Surface highlight for 3D depth -->
+  <ellipse cx="12" cy="12" rx="6" ry="7" 
+           fill="url(#seed1-highlight)" 
+           transform="rotate(-8 12 12)"/>
+  
+  <!-- Natural surface detail -->
+  <ellipse cx="12" cy="12" rx="7" ry="8.5" 
+           fill="none" 
+           stroke="#654321" 
+           stroke-width="0.3" 
+           opacity="0.3" 
+           transform="rotate(-8 12 12)"/>
+</svg>

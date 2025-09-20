@@ -1,0 +1,76 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40">
+  <defs>
+    <!-- Speckled seed texture with multiple tones -->
+    <radialGradient id="speckled-base" cx="45%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#D4B896"/>
+      <stop offset="25%" stop-color="#C5A882"/>
+      <stop offset="50%" stop-color="#B6996F"/>
+      <stop offset="75%" stop-color="#A68B5C"/>
+      <stop offset="100%" stop-color="#8B7549"/>
+    </radialGradient>
+    
+    <!-- Highlight gradient for 3D effect -->
+    <radialGradient id="speckled-highlight" cx="35%" cy="25%" r="40%">
+      <stop offset="0%" stop-color="#E8D4B5" stop-opacity="0.8"/>
+      <stop offset="50%" stop-color="#D4B896" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#C5A882" stop-opacity="0.0"/>
+    </radialGradient>
+    
+    <!-- Subtle texture pattern -->
+    <pattern id="speckles" x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse">
+      <rect width="8" height="8" fill="transparent"/>
+      <!-- Small dark speckles -->
+      <circle cx="2" cy="2" r="0.4" fill="#8B7549" opacity="0.6"/>
+      <circle cx="6" cy="1.5" r="0.3" fill="#7A6538" opacity="0.5"/>
+      <circle cx="1" cy="5.5" r="0.3" fill="#9C8856" opacity="0.4"/>
+      <circle cx="4.5" cy="6" r="0.2" fill="#8B7549" opacity="0.7"/>
+      <circle cx="7" cy="4.5" r="0.25" fill="#756142" opacity="0.5"/>
+      <circle cx="3" cy="3.5" r="0.2" fill="#A68B5C" opacity="0.4"/>
+      <!-- Lighter speckles for contrast -->
+      <circle cx="5" cy="2.5" r="0.15" fill="#E8D4B5" opacity="0.6"/>
+      <circle cx="2.5" cy="7" r="0.2" fill="#D4B896" opacity="0.5"/>
+      <circle cx="6.5" cy="6.5" r="0.15" fill="#DCC5A3" opacity="0.4"/>
+    </pattern>
+    
+    <!-- Drop shadow filter -->
+    <filter id="speckled-shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+      <feOffset dx="1" dy="2" result="offset"/>
+      <feFlood flood-color="#4A3420" flood-opacity="0.6"/>
+      <feComposite in2="offset" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Main seed body -->
+  <ellipse cx="20" cy="22" rx="16" ry="18" 
+           fill="url(#speckled-base)" 
+           filter="url(#speckled-shadow)"/>
+  
+  <!-- Speckled texture overlay -->
+  <ellipse cx="20" cy="22" rx="16" ry="18" 
+           fill="url(#speckles)" 
+           opacity="0.8"/>
+  
+  <!-- Top highlight for 3D depth -->
+  <ellipse cx="20" cy="22" rx="16" ry="18" 
+           fill="url(#speckled-highlight)"/>
+  
+  <!-- Natural seed ridge/crack detail -->
+  <path d="M12,15 Q20,12 28,15 Q24,20 20,22 Q16,20 12,15" 
+        fill="none" 
+        stroke="#8B7549" 
+        stroke-width="0.8" 
+        opacity="0.6"/>
+  
+  <!-- Subtle side shading for roundness -->
+  <ellipse cx="8" cy="22" rx="2" ry="16" 
+           fill="#A68B5C" 
+           opacity="0.3"/>
+  <ellipse cx="32" cy="22" rx="2" ry="16" 
+           fill="#8B7549" 
+           opacity="0.3"/>
+</svg>

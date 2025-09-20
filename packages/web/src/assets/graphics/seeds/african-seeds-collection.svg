@@ -1,0 +1,90 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <defs>
+    <!-- Gradients for realistic seed variations -->
+    <radialGradient id="seed-dark-brown" cx="0.35" cy="0.25" r="0.8">
+      <stop offset="0%" stop-color="#A0522D"/>
+      <stop offset="30%" stop-color="#8B4513"/>
+      <stop offset="70%" stop-color="#654321"/>
+      <stop offset="100%" stop-color="#4A2C17"/>
+    </radialGradient>
+    
+    <radialGradient id="seed-medium-brown" cx="0.4" cy="0.3" r="0.8">
+      <stop offset="0%" stop-color="#DEB887"/>
+      <stop offset="40%" stop-color="#CD853F"/>
+      <stop offset="80%" stop-color="#A0522D"/>
+      <stop offset="100%" stop-color="#8B4513"/>
+    </radialGradient>
+    
+    <radialGradient id="seed-light-brown" cx="0.45" cy="0.35" r="0.75">
+      <stop offset="0%" stop-color="#F4A460"/>
+      <stop offset="30%" stop-color="#DEB887"/>
+      <stop offset="70%" stop-color="#CD853F"/>
+      <stop offset="100%" stop-color="#A0522D"/>
+    </radialGradient>
+    
+    <radialGradient id="seed-speckled" cx="0.3" cy="0.2" r="0.85">
+      <stop offset="0%" stop-color="#D2B48C"/>
+      <stop offset="20%" stop-color="#BC9A6A"/>
+      <stop offset="50%" stop-color="#A0522D"/>
+      <stop offset="100%" stop-color="#8B4513"/>
+    </radialGradient>
+    
+    <radialGradient id="seed-stone-gray" cx="0.4" cy="0.3" r="0.8">
+      <stop offset="0%" stop-color="#A9A9A9"/>
+      <stop offset="40%" stop-color="#808080"/>
+      <stop offset="80%" stop-color="#696969"/>
+      <stop offset="100%" stop-color="#556B2F"/>
+    </radialGradient>
+    
+    <!-- Patterns for seed surface textures -->
+    <pattern id="seed-speckles" x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="3" r="0.5" fill="#8B4513" opacity="0.3"/>
+      <circle cx="6" cy="1" r="0.3" fill="#654321" opacity="0.2"/>
+      <circle cx="4" cy="6" r="0.4" fill="#A0522D" opacity="0.25"/>
+    </pattern>
+    
+    <!-- Drop shadow filter -->
+    <filter id="drop-shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="2" dy="3" stdDeviation="2" flood-opacity="0.3"/>
+    </filter>
+    
+    <!-- Inner shadow for depth -->
+    <filter id="inner-shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feOffset dx="1" dy="1"/>
+      <feGaussianBlur stdDeviation="1" result="offset-blur"/>
+      <feFlood flood-color="#000000" flood-opacity="0.2"/>
+      <feComposite in2="offset-blur" operator="in"/>
+      <feComposite in2="SourceGraphic" operator="over"/>
+    </filter>
+  </defs>
+  
+  <!-- Seed Type 1: Dark Brown with natural shape -->
+  <ellipse cx="20" cy="25" rx="8" ry="12" fill="url(#seed-dark-brown)" 
+           filter="url(#drop-shadow)" transform="rotate(-15 20 25)"/>
+  
+  <!-- Seed Type 2: Medium Brown with slight oval -->
+  <ellipse cx="50" cy="20" rx="10" ry="14" fill="url(#seed-medium-brown)" 
+           filter="url(#drop-shadow)" transform="rotate(20 50 20)"/>
+  
+  <!-- Seed Type 3: Light Brown with organic shape -->
+  <ellipse cx="80" cy="30" rx="9" ry="13" fill="url(#seed-light-brown)" 
+           filter="url(#drop-shadow)" transform="rotate(-5 80 30)"/>
+  
+  <!-- Seed Type 4: Speckled with texture -->
+  <ellipse cx="25" cy="60" rx="11" ry="15" fill="url(#seed-speckled)" 
+           filter="url(#drop-shadow)" transform="rotate(35 25 60)"/>
+  <ellipse cx="25" cy="60" rx="11" ry="15" fill="url(#seed-speckles)" 
+           opacity="0.6" transform="rotate(35 25 60)"/>
+  
+  <!-- Seed Type 5: Gray stone-like -->
+  <ellipse cx="70" cy="70" rx="10" ry="13" fill="url(#seed-stone-gray)" 
+           filter="url(#drop-shadow)" transform="rotate(-25 70 70)"/>
+  
+  <!-- Add subtle surface details -->
+  <ellipse cx="20" cy="25" rx="6" ry="9" fill="none" stroke="#654321" 
+           stroke-width="0.3" opacity="0.4" transform="rotate(-15 20 25)"/>
+  <ellipse cx="50" cy="20" rx="7" ry="10" fill="none" stroke="#A0522D" 
+           stroke-width="0.3" opacity="0.4" transform="rotate(20 50 20)"/>
+  <ellipse cx="80" cy="30" rx="6.5" ry="9.5" fill="none" stroke="#CD853F" 
+           stroke-width="0.3" opacity="0.4" transform="rotate(-5 80 30)"/>
+</svg>
