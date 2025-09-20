@@ -1,7 +1,7 @@
 ﻿// Basic protocol type definitions (initial draft)
 export type ClientToServer =
-	| { type: 'create'; name?: string }
-	| { type: 'join'; gameId: string; name?: string }
+	| { type: 'create'; name?: string; playerId?: string }
+	| { type: 'join'; gameId: string; name?: string; playerId?: string; reconnect?: boolean }
 	| { type: 'move'; gameId: string; pit: number; clientSeq?: number }
 	| { type: 'resign'; gameId: string }
 	| { type: 'ping'; ts?: number };

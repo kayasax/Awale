@@ -8,7 +8,15 @@ import type { GameState } from '@awale/shared';
 const PORT = parseInt(process.env.PORT || '8080', 10);
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN; // Optional strict origin check
 
-interface PlayerInfo { id: string; name: string; token: string; connected: boolean; ws?: WebSocket; lastSeen: number; }
+interface PlayerInfo { 
+  id: string; 
+  name: string; 
+  playerId?: string;  // Client-provided persistent ID
+  token: string; 
+  connected: boolean; 
+  ws?: WebSocket; 
+  lastSeen: number; 
+}
 interface GameSession {
 	id: string;
 	host: PlayerInfo;
@@ -122,7 +130,15 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 			case 'create': {
 				const gameId = newId();
 				const token = newToken();
-				const host: PlayerInfo = { id: 'host', name: msg.name || 'Host', token, connected: true, ws, lastSeen: Date.now() };
+				const host: PlayerInfo = { 
+					id: 'host', 
+					name: msg.name || 'Host', 
+					playerId: msg.playerId,
+					token, 
+					connected: true, 
+					ws, 
+					lastSeen: Date.now() 
+				};
 				const game: GameSession = { id: gameId, host, state: createInitialState(), createdAt: Date.now(), updatedAt: Date.now(), moveSeq: 0 };
 				games.set(gameId, game);
 				send(ws, { type: 'created', gameId, playerToken: token });
@@ -132,9 +148,44 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 			case 'join': {
 				const game = games.get(msg.gameId);
 				if (!game) return send(ws, { type: 'error', code: 'GAME_NOT_FOUND', message: 'Game not found' });
+				
+				// Check for reconnection with same playerId
+				if (msg.playerId) {
+					// Check if this playerId is the host trying to reconnect
+					if (game.host.playerId === msg.playerId) {
+						console.log(`🔄 Host reconnecting with playerId: ${msg.playerId}`);
+						game.host.ws = ws;
+						game.host.connected = true;
+						game.host.lastSeen = Date.now();
+						send(ws, { type: 'joined', gameId: game.id, role: 'host', opponent: game.guest?.name });
+						send(ws, { type: 'state', gameId: game.id, version: game.state.version || 0, state: toPublicState(game.state) });
+						return;
+					}
+					
+					// Check if this playerId is the guest trying to reconnect
+					if (game.guest?.playerId === msg.playerId) {
+						console.log(`🔄 Guest reconnecting with playerId: ${msg.playerId}`);
+						game.guest.ws = ws;
+						game.guest.connected = true;
+						game.guest.lastSeen = Date.now();
+						send(ws, { type: 'joined', gameId: game.id, role: 'guest', opponent: game.host.name });
+						send(ws, { type: 'state', gameId: game.id, version: game.state.version || 0, state: toPublicState(game.state) });
+						return;
+					}
+				}
+				
+				// Regular join logic (new player)
 				if (game.guest) return send(ws, { type: 'error', code: 'FULL', message: 'Game full' });
 				const token = newToken();
-				const guest: PlayerInfo = { id: 'guest', name: msg.name || 'Guest', token, connected: true, ws, lastSeen: Date.now() };
+				const guest: PlayerInfo = { 
+					id: 'guest', 
+					name: msg.name || 'Guest', 
+					playerId: msg.playerId,
+					token, 
+					connected: true, 
+					ws, 
+					lastSeen: Date.now() 
+				};
 				game.guest = guest; game.updatedAt = Date.now();
 				send(ws, { type: 'joined', gameId: game.id, role: 'guest', opponent: game.host.name });
 				send(ws, { type: 'state', gameId: game.id, version: game.state.version || 0, state: toPublicState(game.state) });

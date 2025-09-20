@@ -56,6 +56,10 @@ export const OnlineGame: React.FC<Props> = ({
   const boardRef = useRef<HTMLDivElement | null>(null);
   const pitRefs = useRef<(HTMLButtonElement | null)[]>([]);
   
+  // Track reconnection attempts to prevent infinite loop
+  const reconnectAttempts = useRef(0);
+  const MAX_RECONNECT_ATTEMPTS = 3;
+  
   // State
   const [meta, setMeta] = useState<LocalMeta>({});
   const [snapshot, setSnapshot] = useState<GameStateSnapshot | null>(null);
@@ -216,19 +220,25 @@ export const OnlineGame: React.FC<Props> = ({
         case 'error':
           console.error('❌ Server error:', msg);
           
-          // Handle "game full" with auto-reconnection logic for same player
+          // Handle "game full" with limited auto-reconnection attempts
           if (msg.message && msg.message.toLowerCase().includes('full') && finalPlayerId) {
-            console.log('🔄 Game full error detected, attempting reconnection with same playerId...');
-            setError('Game full - attempting to reconnect as existing player...');
-            
-            // Retry connection after short delay with same playerId
-            setTimeout(() => {
-              console.log('🔄 Retrying connection to potentially rejoin as existing player');
-              if (mode === 'online-join' && code) {
-                client.send({ type: 'join', gameId: code, name: finalPlayerName, playerId: finalPlayerId, reconnect: true });
-              }
-            }, 2000);
-            
+            if (reconnectAttempts.current < MAX_RECONNECT_ATTEMPTS) {
+              reconnectAttempts.current++;
+              console.log(`🔄 Game full error detected, attempting reconnection ${reconnectAttempts.current}/${MAX_RECONNECT_ATTEMPTS} with same playerId...`);
+              setError(`Game full - attempting to reconnect as existing player... (${reconnectAttempts.current}/${MAX_RECONNECT_ATTEMPTS})`);
+              
+              // Retry connection after short delay with same playerId
+              setTimeout(() => {
+                console.log('🔄 Retrying connection to potentially rejoin as existing player');
+                if (mode === 'online-join' && code) {
+                  client.send({ type: 'join', gameId: code, name: finalPlayerName, playerId: finalPlayerId, reconnect: true });
+                }
+              }, 2000);
+              
+            } else {
+              console.log('❌ Max reconnection attempts reached, giving up');
+              setError(`Game full - Unable to reconnect after ${MAX_RECONNECT_ATTEMPTS} attempts. The server may not support reconnection yet.`);
+            }
           } else {
             setError(msg.message);
           }
