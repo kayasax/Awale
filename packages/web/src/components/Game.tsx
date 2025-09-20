@@ -2,6 +2,7 @@
 import { APP_VERSION } from '../version';
 import { createInitialState, applyMove, getLegalMoves, formatBoard } from '../../../core/src/engine';
 import { greedyStrategy } from '../../../core/src/ai/greedy';
+import { ProfileService } from '../services/profile';
 import type { GameState } from '../../../shared/src/types';
 
 interface ViewState {
@@ -90,6 +91,7 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
   function restart() {
     setView({ state: createInitialState(), thinking: false, message: 'New game started!', prevPits: undefined, lastMovePit: undefined });
     setAnimating(false); setDisplayPits(null); setHandPos(null);
+    setGameResultRecorded(false); // Reset for new game
   }
 
   function moveHandToPit(pitIndex: number) {
@@ -246,6 +248,34 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
   useEffect(() => {
     if (!animating) setHandPos(null);
   }, [animating]);
+
+  // Game result tracking - record statistics when game ends
+  const [gameStartTime] = useState(Date.now());
+  const [gameResultRecorded, setGameResultRecorded] = useState(false);
+  
+  useEffect(() => {
+    if (view.state.ended && !gameResultRecorded) {
+      const gameEndTime = Date.now();
+      const gameDuration = (gameEndTime - gameStartTime) / 1000; // Convert to seconds
+      
+      const gameResult = {
+        won: view.state.winner === 'A',
+        seedsCaptured: view.state.captured.A,
+        gameDuration,
+        opponent: 'AI',
+        timestamp: gameEndTime
+      };
+      
+      try {
+        ProfileService.recordGameResult(gameResult);
+        console.log('🎮 Game result recorded:', gameResult);
+      } catch (error) {
+        console.error('Failed to record game result:', error);
+      }
+      
+      setGameResultRecorded(true);
+    }
+  }, [view.state.ended, view.state.winner, view.state.captured.A, gameStartTime, gameResultRecorded]);
 
   const score = `You: ${view.state.captured.A} | AI: ${view.state.captured.B}`;
   const winner = view.state.ended ? (view.state.winner === 'A' ? 'You win!' : view.state.winner === 'B' ? 'AI wins.' : 'Draw.') : '';

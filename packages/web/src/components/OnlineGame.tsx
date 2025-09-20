@@ -1,5 +1,6 @@
 ﻿import React, { useEffect, useRef, useState } from 'react';
 import { OnlineClient } from '../online/connection';
+import { ProfileService } from '../services/profile';
 import type { GameStateSnapshot, ServerToClient } from '../online/protocol';
 import { Game } from './Game';
 import { BoardView } from './BoardView';
@@ -79,6 +80,10 @@ export const OnlineGame: React.FC<Props> = ({
     lastCapturedPits: [],
     prevPits: undefined
   });
+
+  // Game result tracking
+  const [gameStartTime] = useState(Date.now());
+  const [gameResultRecorded, setGameResultRecorded] = useState(false);
 
   // Audio system (matching single-player)
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -279,6 +284,35 @@ export const OnlineGame: React.FC<Props> = ({
       setAnimState(prev => ({ ...prev, handPos: null }));
     }
   }, [animState.animating]);
+
+  // Game result tracking - record statistics when multiplayer game ends
+  useEffect(() => {
+    if (snapshot?.ended && !gameResultRecorded) {
+      const gameEndTime = Date.now();
+      const gameDuration = (gameEndTime - gameStartTime) / 1000; // Convert to seconds
+      
+      const ourRole = metaRef.current.role;
+      const isWinner = ourRole && snapshot.winner === (ourRole === 'host' ? 'A' : 'B');
+      const ourScore = ourRole === 'host' ? snapshot.captured.A : snapshot.captured.B;
+      
+      const gameResult = {
+        won: isWinner,
+        seedsCaptured: ourScore,
+        gameDuration,
+        opponent: 'Human', // Multiplayer opponent
+        timestamp: gameEndTime
+      };
+      
+      try {
+        ProfileService.recordGameResult(gameResult);
+        console.log('🎮 Multiplayer game result recorded:', gameResult);
+      } catch (error) {
+        console.error('Failed to record multiplayer game result:', error);
+      }
+      
+      setGameResultRecorded(true);
+    }
+  }, [snapshot?.ended, snapshot?.winner, snapshot?.captured, gameStartTime, gameResultRecorded]);
 
   function animateMove(pit: number, finalPits: number[]) {
     if (animState.animating) return;

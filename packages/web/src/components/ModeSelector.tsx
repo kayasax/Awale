@@ -1,4 +1,5 @@
 ﻿import React, { useState } from 'react';
+import { ProfileBar } from './ProfileBar';
 
 interface Props { onSelect: (mode: 'ai' | 'online-create' | 'online-join', joinId?: string) => void; }
 
@@ -6,6 +7,7 @@ export const ModeSelector: React.FC<Props> = ({ onSelect }) => {
   const [joinCode, setJoinCode] = useState('');
   return (
     <div className="mode-selector">
+      <ProfileBar className="mode-selector-profile" />
       <h2>Play Awale</h2>
       <div className="modes">
         <button className="btn primary" onClick={()=> onSelect('ai')}>Play vs AI</button>
