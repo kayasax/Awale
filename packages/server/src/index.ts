@@ -99,9 +99,19 @@ const server = http.createServer((req, res) => {
 const wss = new WebSocketServer({ server, path: '/ws' });
 
 wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
-	if (ALLOWED_ORIGIN && req.headers.origin && req.headers.origin !== ALLOWED_ORIGIN) {
-		ws.close(4001, 'origin not allowed');
-		return;
+	// Allow localhost origins for development, strict origin check for production
+	if (ALLOWED_ORIGIN && req.headers.origin) {
+		const origin = req.headers.origin;
+		const isLocalhost = origin.includes('localhost:') || origin.includes('127.0.0.1:') || origin.includes('::1:');
+		const isAllowedOrigin = origin === ALLOWED_ORIGIN;
+		const isGitHubPages = origin.includes('.github.io');
+		
+		if (!isLocalhost && !isAllowedOrigin && !isGitHubPages) {
+			console.log(`🚫 Origin not allowed: ${origin}`);
+			ws.close(4001, 'origin not allowed');
+			return;
+		}
+		console.log(`✅ Connection accepted from origin: ${origin}`);
 	}
 
 	ws.on('message', (data: any) => {
@@ -136,6 +146,12 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 				const game = games.get(msg.gameId);
 				if (!game) return send(ws, { type: 'error', code: 'GAME_NOT_FOUND', message: 'Game not found' });
 				if (game.state.ended) return send(ws, { type: 'error', code: 'ENDED', message: 'Game ended' });
+				
+				// Check if both players are present
+				if (!game.guest || !game.guest.connected) {
+					return send(ws, { type: 'error', code: 'WAITING_FOR_OPPONENT', message: 'Waiting for opponent to join' });
+				}
+				
 				// Identify player
 				const player = (game.host.ws === ws) ? 'host' : (game.guest?.ws === ws ? 'guest' : undefined);
 				if (!player) return send(ws, { type: 'error', code: 'NOT_IN_GAME', message: 'Not part of this game' });
