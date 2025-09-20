@@ -1,6 +1,39 @@
 ﻿body, html { height:100%; }
 body { margin:0; }
 
+/* 🎨 African-Inspired Color System */
+:root {
+  /* Earth Tones - Primary Palette */
+  --african-saddle-brown: #8B4513;
+  --african-chocolate: #D2691E;
+  --african-peru: #CD853F;
+  --african-burlywood: #DEB887;
+  --african-sandy: #F4A460;
+  
+  /* Warm Accent Colors */
+  --african-dark-gold: #B8860B;
+  --african-goldenrod: #DAA520;
+  --african-gold: #FFD700;
+  
+  /* Natural Seed Colors */
+  --seed-dark-brown: #8B4513;
+  --seed-medium-brown: #A0522D;
+  --seed-light-brown: #CD853F;
+  --seed-pale: #F5DEB3;
+  --seed-stone-gray: #696969;
+  
+  /* Cultural Accent Colors (use sparingly) */
+  --african-deep-red: #DC143C;
+  --african-orange: #FF8C00;
+  --african-forest-green: #228B22;
+  
+  /* Enhanced Wood Tones */
+  --carved-wood-dark: #5a3c1d;
+  --carved-wood-medium: #6d4925;
+  --carved-wood-light: #855d33;
+  --carved-wood-highlight: #a67c52;
+}
+
 /* Android-specific fixes for touch behavior */
 body {
   -webkit-touch-callout: none;
@@ -193,23 +226,74 @@ header { margin-bottom: 1rem; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes sparkle { 0% { opacity:0; transform:scale(.3) rotate(0deg); } 40% { opacity:1; transform:scale(1.05) rotate(25deg); } 70% { opacity:.9; } 100% { opacity:0; transform:scale(.4) rotate(60deg); } }
 
-/* Wood Theme -------------------------------------------------------- */
+/* 🌍 Enhanced African Wood Theme ---------------------------------------- */
 .theme-wood .board-shell {
 	background:
-		linear-gradient(145deg,#6d4925,#5a3c1d 55%, #4b3218 90%),
-		repeating-linear-gradient(25deg, #0000 0 10px, #00000008 10px 20px);
-	border:1px solid #3f2a15;
-	box-shadow:0 10px 28px -10px #000e, 0 0 0 1px #855d33 inset, 0 0 0 2px #0002 inset;
+		linear-gradient(145deg, var(--carved-wood-medium), var(--carved-wood-dark) 55%, var(--african-saddle-brown) 90%),
+		repeating-linear-gradient(25deg, transparent 0 10px, rgba(0,0,0,0.08) 10px 20px),
+		linear-gradient(rgba(218, 165, 32, 0.03), rgba(218, 165, 32, 0.05));
+	border: 1px solid var(--african-saddle-brown);
+	box-shadow:
+		0 12px 32px -12px rgba(0,0,0,0.9),
+		inset 0 1px 0 rgba(218, 165, 32, 0.2),
+		inset 0 0 0 1px var(--carved-wood-light),
+		inset 0 0 0 2px rgba(0,0,0,0.2);
+	border-radius: 20px;
+	position: relative;
 }
-.theme-wood .board { gap:1rem; }
+
+/* Add subtle African geometric pattern overlay */
+.theme-wood .board-shell::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: 
+		linear-gradient(45deg, transparent 45%, rgba(218, 165, 32, 0.02) 50%, transparent 55%),
+		linear-gradient(-45deg, transparent 45%, rgba(218, 165, 32, 0.02) 50%, transparent 55%);
+	background-size: 20px 20px;
+	border-radius: 20px;
+	pointer-events: none;
+}
+
+.theme-wood .board { 
+	gap: 1rem; 
+	position: relative;
+	z-index: 1;
+}
+
 .theme-wood .pit {
 	background:
-		radial-gradient(circle at 30% 28%, #7a5430, #5c3d1f 65%),
-		linear-gradient(160deg,#6d4825,#5b3b1d 70%);
-	border-color:#8d6035;
-	box-shadow: inset 0 3px 5px #0009, 0 2px 3px #000a, 0 0 0 1px #482c14, 0 0 8px -2px #000a;
-	color:#f8efea;
+		radial-gradient(circle at 30% 28%, var(--carved-wood-light), var(--carved-wood-dark) 65%),
+		linear-gradient(160deg, var(--carved-wood-medium), var(--carved-wood-dark) 70%);
+	border: 1px solid var(--carved-wood-light);
+	box-shadow: 
+		inset 0 4px 8px rgba(0,0,0,0.6),
+		inset 0 1px 2px rgba(0,0,0,0.8),
+		0 2px 4px rgba(0,0,0,0.7),
+		0 0 0 1px var(--african-saddle-brown),
+		0 0 12px -2px rgba(0,0,0,0.7);
+	border-radius: 50%;
+	position: relative;
 }
+
+/* Enhanced pit depth with carved wood texture */
+.theme-wood .pit::before {
+	content: '';
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	right: 2px;
+	bottom: 2px;
+	background:
+		radial-gradient(circle at 65% 35%, transparent 20%, rgba(0,0,0,0.1) 40%, transparent 60%),
+		radial-gradient(circle at 35% 70%, transparent 30%, rgba(218, 165, 32, 0.05) 50%, transparent 70%);
+	border-radius: 50%;
+	pointer-events: none;
+}
+
 .theme-wood .row.opponent .pit {
 	background:
 		radial-gradient(circle at 60% 25%, #845b34, #5f411f 65%),

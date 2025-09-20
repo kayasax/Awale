@@ -1,0 +1,51 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200" width="400" height="200">
+  <defs>
+    <!-- African Carved Wood Grain Pattern -->
+    <pattern id="african-wood-grain" x="0" y="0" width="400" height="200" patternUnits="userSpaceOnUse">
+      <!-- Base wood color -->
+      <rect width="400" height="200" fill="#6d4925"/>
+      
+      <!-- Wood grain lines with organic curves -->
+      <g fill="none" stroke="#5a3c1d" stroke-width="1.5" opacity="0.6">
+        <path d="M0,30 Q100,25 200,35 Q300,45 400,30"/>
+        <path d="M0,60 Q80,55 180,70 Q280,85 400,65"/>
+        <path d="M0,100 Q120,90 220,110 Q320,125 400,105"/>
+        <path d="M0,140 Q90,135 190,150 Q290,165 400,145"/>
+        <path d="M0,180 Q110,170 210,185 Q310,195 400,180"/>
+      </g>
+      
+      <!-- Darker accent lines for depth -->
+      <g fill="none" stroke="#4b3218" stroke-width="0.8" opacity="0.4">
+        <path d="M0,45 Q95,42 195,48 Q295,54 400,45"/>
+        <path d="M0,85 Q105,80 205,90 Q305,100 400,85"/>
+        <path d="M0,125 Q115,120 215,130 Q315,140 400,125"/>
+        <path d="M0,165 Q85,160 185,170 Q285,180 400,165"/>
+      </g>
+      
+      <!-- Subtle highlight lines -->
+      <g fill="none" stroke="#855d33" stroke-width="0.5" opacity="0.3">
+        <path d="M0,20 Q90,18 190,22 Q290,26 400,20"/>
+        <path d="M0,75 Q110,72 210,78 Q310,84 400,75"/>
+        <path d="M0,115 Q95,112 195,118 Q295,124 400,115"/>
+        <path d="M0,155 Q105,152 205,158 Q305,164 400,155"/>
+        <path d="M0,195 Q115,192 215,198 Q315,204 400,195"/>
+      </g>
+    </pattern>
+    
+    <!-- Subtle Geometric Pattern for Borders -->
+    <pattern id="african-geometric-border" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <rect width="40" height="40" fill="none"/>
+      <g fill="#B8860B" opacity="0.15">
+        <!-- Simple diamond pattern -->
+        <path d="M20,5 L35,20 L20,35 L5,20 Z"/>
+      </g>
+      <g fill="none" stroke="#DAA520" stroke-width="0.5" opacity="0.25">
+        <path d="M20,8 L32,20 L20,32 L8,20 Z"/>
+      </g>
+    </pattern>
+  </defs>
+  
+  <!-- Pattern preview rectangles -->
+  <rect x="0" y="0" width="200" height="200" fill="url(#african-wood-grain)"/>
+  <rect x="200" y="0" width="200" height="200" fill="url(#african-geometric-border)"/>
+</svg>
