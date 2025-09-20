@@ -8,6 +8,8 @@ interface Props {
   mode: 'online-create' | 'online-join';
   code?: string; // Provided when joining
   name?: string;
+  playerName?: string; // Consistent player name
+  playerId?: string;   // Unique persistent player ID
   onExit: () => void;
   serverUrl: string;
 }
@@ -29,7 +31,26 @@ interface AnimationState {
 }
 
 // Reuse local Game component for rendering board, but we'll override state transitions later.
-export const OnlineGame: React.FC<Props> = ({ mode, code, name='Player', onExit, serverUrl }) => {
+export const OnlineGame: React.FC<Props> = ({ 
+  mode, 
+  code, 
+  name: propName, 
+  playerName, 
+  playerId, 
+  onExit, 
+  serverUrl 
+}) => {
+  // Use playerName from props or fallback to existing logic
+  const finalPlayerName = playerName || propName || 'Player';
+  const finalPlayerId = playerId || 'player-' + Math.random().toString(36).substr(2, 8);
+  
+  console.log('🎮 OnlineGame starting with:', { 
+    mode, 
+    code, 
+    finalPlayerName, 
+    finalPlayerId, 
+    serverUrl 
+  });
   const clientRef = useRef<OnlineClient | null>(null);
   const metaRef = useRef<LocalMeta>({});
   const boardRef = useRef<HTMLDivElement | null>(null);
@@ -194,22 +215,38 @@ export const OnlineGame: React.FC<Props> = ({ mode, code, name='Player', onExit,
           break;
         case 'error':
           console.error('❌ Server error:', msg);
-          setError(msg.message);
+          
+          // Handle "game full" with auto-reconnection logic for same player
+          if (msg.message && msg.message.toLowerCase().includes('full') && finalPlayerId) {
+            console.log('🔄 Game full error detected, attempting reconnection with same playerId...');
+            setError('Game full - attempting to reconnect as existing player...');
+            
+            // Retry connection after short delay with same playerId
+            setTimeout(() => {
+              console.log('🔄 Retrying connection to potentially rejoin as existing player');
+              if (mode === 'online-join' && code) {
+                client.send({ type: 'join', gameId: code, name: finalPlayerName, playerId: finalPlayerId, reconnect: true });
+              }
+            }, 2000);
+            
+          } else {
+            setError(msg.message);
+          }
           break;
       }
     });
     client.connect();
-    // Initiate
-    console.log('🚀 Initiating connection, mode:', mode, 'code:', code, 'name:', name);
+    // Initiate with persistent player ID for reconnection
+    console.log('🚀 Initiating connection, mode:', mode, 'code:', code, 'finalPlayerName:', finalPlayerName, 'finalPlayerId:', finalPlayerId);
     if (mode === 'online-create') {
-      console.log('📤 Sending create message');
-      client.send({ type: 'create', name });
+      console.log('📤 Sending create message with playerId for reconnection support');
+      client.send({ type: 'create', name: finalPlayerName, playerId: finalPlayerId });
     } else if (mode === 'online-join' && code) {
-      console.log('📤 Sending join message for gameId:', code);
-      client.send({ type: 'join', gameId: code, name });
+      console.log('📤 Sending join message for gameId:', code, 'with playerId for reconnection');
+      client.send({ type: 'join', gameId: code, name: finalPlayerName, playerId: finalPlayerId });
     }
     return () => { off(); client.close(); };
-  }, [mode, code, name, serverUrl]);
+  }, [mode, code, finalPlayerName, finalPlayerId, serverUrl]);
 
   // Update CSS vars for hand position relative to board
   useEffect(() => {

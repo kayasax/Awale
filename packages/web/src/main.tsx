@@ -9,6 +9,24 @@ const App: React.FC = () => {
 	const [mode, setMode] = useState<'ai' | 'online-create' | 'online-join' | null>(null);
 	const [gameInfo, setGameInfo] = useState<{ code?: string; role?: string } | null>(null);
 	
+	// Generate or retrieve persistent player ID
+	const getPlayerId = () => {
+		let playerId = localStorage.getItem('awale-player-id');
+		if (!playerId) {
+			playerId = 'player-' + Math.random().toString(36).substr(2, 8);
+			localStorage.setItem('awale-player-id', playerId);
+		}
+		return playerId;
+	};
+	
+	// Get or set player name  
+	const getPlayerName = () => {
+		const stored = localStorage.getItem('awale-player-name');
+		return stored || 'Player';
+	};
+	
+	const playerName = getPlayerName();
+	
 	// Check for direct join links on load
 	useEffect(() => {
 		const checkForJoinLink = () => {
@@ -31,12 +49,13 @@ const App: React.FC = () => {
 		
 		// Check on initial load
 		console.log('🚀 App starting, checking for join link...');
+		console.log('👤 Player ID:', getPlayerId(), 'Name:', playerName);
 		checkForJoinLink();
 		
 		// Listen for hash changes (if user navigates back/forward)
 		window.addEventListener('hashchange', checkForJoinLink);
 		return () => window.removeEventListener('hashchange', checkForJoinLink);
-	}, []);
+	}, [playerName]);
 	
 	console.log('🎯 Current state:', { mode, gameInfo });
 	
@@ -54,9 +73,16 @@ const App: React.FC = () => {
 		return <Game onExit={()=> { setMode(null); setGameInfo(null); }} />;
 	}
 	
-	console.log('🌐 Rendering OnlineGame with:', { mode, code: gameInfo?.code });
+	console.log('🌐 Rendering OnlineGame with:', { mode, code: gameInfo?.code, playerName, playerId: getPlayerId() });
 	const serverUrl = (import.meta as any).env?.VITE_AWALE_SERVER_WS || (window as any).__AWALE_SERVER__ || 'wss://awale-server.livelybay-5ef501af.francecentral.azurecontainerapps.io/ws';
-	return <OnlineGame mode={mode} code={gameInfo?.code} onExit={()=> { setMode(null); setGameInfo(null); }} serverUrl={serverUrl} />;
+	return <OnlineGame 
+		mode={mode} 
+		code={gameInfo?.code} 
+		playerName={playerName}
+		playerId={getPlayerId()}
+		onExit={()=> { setMode(null); setGameInfo(null); }} 
+		serverUrl={serverUrl} 
+	/>;
 };
 
 createRoot(document.getElementById('root')!).render(<App />);
