@@ -1,0 +1,82 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dark Theme Test</title>
+    <style>
+        /* Simulating the CSS rules from our style.css */
+        .theme-dark .pit {
+            background: radial-gradient(circle at 50% 50%, #1a1e22 0%, #23272b 30%, #2c3136 60%, #363c42 100%) !important;
+            border: 2px solid #1a1e22 !important;
+            border-radius: 50% !important;
+            box-shadow: 
+                inset 0 8px 16px rgba(0,0,0,0.95),
+                inset 0 4px 8px rgba(0,0,0,0.9),
+                inset 0 0 0 2px rgba(0,0,0,0.6),
+                0 0 2px rgba(119, 129, 138, 0.2) !important;
+            width: 70px;
+            height: 70px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 5px;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .theme-dark .row.opponent .pit {
+            background: radial-gradient(circle at 50% 50%, #161a1e 0%, #2a2f34 30%, #30363b 60%, #40474e 100%) !important;
+            border: 2px solid #1a1e22 !important;
+            box-shadow: 
+                inset 0 8px 16px rgba(0,0,0,0.95),
+                inset 0 4px 8px rgba(0,0,0,0.9),
+                inset 0 0 0 2px rgba(0,0,0,0.6),
+                0 0 2px rgba(136, 147, 156, 0.2) !important;
+        }
+        
+        .row {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        body {
+            background: #1a1d21;
+            color: white;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Dark Theme Pit Test</h1>
+    
+    <div class="awale-container theme-dark">
+        <div class="board">
+            <div class="row opponent">
+                <button class="pit">5</button>
+                <button class="pit">4</button>
+                <button class="pit">3</button>
+                <button class="pit">2</button>
+                <button class="pit">1</button>
+                <button class="pit">0</button>
+            </div>
+            <div class="row player">
+                <button class="pit">0</button>
+                <button class="pit">1</button>
+                <button class="pit">2</button>
+                <button class="pit">3</button>
+                <button class="pit">4</button>
+                <button class="pit">5</button>
+            </div>
+        </div>
+    </div>
+    
+    <h2>Debug: Direct theme-dark pit (should work)</h2>
+    <div class="theme-dark">
+        <button class="pit">Test Pit</button>
+    </div>
+    
+</body>
+</html>
