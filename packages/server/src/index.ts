@@ -1,7 +1,7 @@
 ﻿import WebSocket, { WebSocketServer } from 'ws';
 import http from 'http';
 import { randomBytes } from 'crypto';
-import { ClientToServer, ServerToClient, GameStateSnapshot } from './protocol.js';
+import { ClientToServer, ServerToClient, GameStateSnapshot, LobbyPlayer, ChatMessage } from './protocol.js';
 import { createInitialState as engineCreateInitial, applyMove, getLegalMoves } from '@awale/core';
 import type { GameState } from '@awale/shared';
 
@@ -29,6 +29,53 @@ interface GameSession {
 }
 
 const games = new Map<string, GameSession>();
+
+// 🌐 Lobby System
+interface LobbyConnection {
+	ws: WebSocket;
+	player: LobbyPlayer;
+	lastSeen: number;
+}
+
+const lobbyConnections = new Map<string, LobbyConnection>();
+const lobbyChatMessages: ChatMessage[] = [];
+const activeInvitations = new Map<string, { from: LobbyPlayer; to: LobbyPlayer; gameId: string; timestamp: number }>();
+
+// Lobby message broadcast
+function broadcastToLobby(message: ServerToClient) {
+	for (const connection of lobbyConnections.values()) {
+		if (connection.ws.readyState === WebSocket.OPEN) {
+			send(connection.ws, message);
+		}
+	}
+}
+
+// Clean up old lobby connections and invitations
+setInterval(() => {
+	const now = Date.now();
+	const LOBBY_TIMEOUT = 300_000; // 5 minutes
+	const INVITATION_TIMEOUT = 60_000; // 1 minute
+	
+	// Clean stale lobby connections
+	for (const [playerId, connection] of lobbyConnections) {
+		if (now - connection.lastSeen > LOBBY_TIMEOUT) {
+			lobbyConnections.delete(playerId);
+			broadcastToLobby({ type: 'lobby', action: 'player-left', playerId });
+		}
+	}
+	
+	// Clean old invitations
+	for (const [inviteId, invite] of activeInvitations) {
+		if (now - invite.timestamp > INVITATION_TIMEOUT) {
+			activeInvitations.delete(inviteId);
+		}
+	}
+	
+	// Limit chat history
+	if (lobbyChatMessages.length > 100) {
+		lobbyChatMessages.splice(0, lobbyChatMessages.length - 100);
+	}
+}, 30_000).unref();
 
 function createInitialState(): GameState {
 	const s = engineCreateInitial();
@@ -128,6 +175,318 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 		try { msg = JSON.parse(data.toString()); } catch { return send(ws, { type: 'error', code: 'BAD_JSON', message: 'Invalid JSON' }); }
 
 		switch (msg.type) {
+			// 🌐 Lobby System Messages
+			case 'lobby': {
+				if (!checkRate(ws)) return send(ws, { type: 'error', code: 'RATE_LIMIT', message: 'Too many messages' });
+				
+				switch (msg.action) {
+					case 'join': {
+						const player: LobbyPlayer = {
+							id: msg.playerId,
+							name: msg.playerName,
+							avatar: msg.avatar,
+							status: 'available',
+							joinedAt: Date.now()
+						};
+						
+						// Remove any existing connection for this player
+						const existingConnection = lobbyConnections.get(player.id);
+						if (existingConnection) {
+							console.log('🌐 Removing existing connection for player:', player.name);
+							broadcastToLobby({ type: 'lobby', action: 'player-left', playerId: player.id });
+						}
+						
+						// Add new connection
+						console.log('🌐 Adding new connection for player:', player.name);
+						lobbyConnections.set(player.id, {
+							ws,
+							player,
+							lastSeen: Date.now()
+						});
+						
+						// Send current lobby state to joining player
+						const players = Array.from(lobbyConnections.values()).map(c => c.player);
+						send(ws, { type: 'lobby', players, messages: lobbyChatMessages.slice(-50) });
+						
+						// Broadcast player joined to others
+						broadcastToLobby({ type: 'lobby', action: 'player-joined', player });
+						break;
+					}
+					
+					case 'leave': {
+						// Find the player by WebSocket connection
+						for (const [playerId, connection] of lobbyConnections) {
+							if (connection.ws === ws) {
+								lobbyConnections.delete(playerId);
+								broadcastToLobby({ type: 'lobby', action: 'player-left', playerId });
+								break;
+							}
+						}
+						break;
+					}
+					
+					case 'status': {
+						// Find the player by WebSocket connection
+						for (const [playerId, connection] of lobbyConnections) {
+							if (connection.ws === ws) {
+								connection.player.status = msg.status;
+								connection.lastSeen = Date.now();
+								broadcastToLobby({ 
+									type: 'lobby', 
+									action: 'player-status', 
+									playerId, 
+									status: msg.status 
+								});
+								break;
+							}
+						}
+						break;
+					}
+					
+					case 'chat': {
+						// Find the player by WebSocket connection
+						let senderConnection: LobbyConnection | undefined;
+						for (const connection of lobbyConnections.values()) {
+							if (connection.ws === ws) {
+								senderConnection = connection;
+								break;
+							}
+						}
+						
+						if (!senderConnection) {
+							return send(ws, { type: 'error', code: 'NOT_IN_LOBBY', message: 'Not in lobby' });
+						}
+						
+						const chatMessage: ChatMessage = {
+							id: newId(),
+							playerId: senderConnection.player.id,
+							playerName: senderConnection.player.name,
+							message: msg.message.slice(0, 500), // Limit message length
+							timestamp: Date.now(),
+							type: 'message'
+						};
+						
+						lobbyChatMessages.push(chatMessage);
+						broadcastToLobby({ type: 'lobby', action: 'chat-message', message: chatMessage });
+						break;
+					}
+					
+					case 'invite': {
+						// Find sender by WebSocket connection
+						let fromConnection: LobbyConnection | undefined;
+						for (const connection of lobbyConnections.values()) {
+							if (connection.ws === ws) {
+								fromConnection = connection;
+								break;
+							}
+						}
+						
+						if (!fromConnection) {
+							return send(ws, { type: 'error', code: 'NOT_IN_LOBBY', message: 'Not in lobby' });
+						}
+						
+						const toConnection = lobbyConnections.get(msg.targetPlayerId);
+						if (!toConnection) {
+							return send(ws, { type: 'error', code: 'PLAYER_NOT_FOUND', message: 'Player not in lobby' });
+						}
+						
+						if (toConnection.player.status !== 'available') {
+							return send(ws, { type: 'error', code: 'PLAYER_BUSY', message: 'Player is not available' });
+						}
+						
+						// Create game session for the invitation
+						const gameId = newId();
+						const inviteId = newId();
+						
+						// Store invitation
+						activeInvitations.set(inviteId, {
+							from: fromConnection.player,
+							to: toConnection.player,
+							gameId,
+							timestamp: Date.now()
+						});
+						
+						// Send invitation to target player
+						send(toConnection.ws, { 
+							type: 'lobby', 
+							action: 'invitation', 
+							from: fromConnection.player, 
+							gameId, 
+							inviteId 
+						});
+						
+						// Update sender status to 'away' (waiting for response)
+						fromConnection.player.status = 'away';
+						broadcastToLobby({ 
+							type: 'lobby', 
+							action: 'player-status', 
+							playerId: fromConnection.player.id, 
+							status: 'away' 
+						});
+						
+						break;
+					}
+					
+					case 'accept-invite': {
+						const invitation = activeInvitations.get(msg.inviteId);
+						if (!invitation) {
+							return send(ws, { type: 'error', code: 'INVITATION_NOT_FOUND', message: 'Invitation expired or not found' });
+						}
+						
+						const respondingConnection = lobbyConnections.get(invitation.to.id);
+						if (!respondingConnection || respondingConnection.ws !== ws) {
+							return send(ws, { type: 'error', code: 'NOT_INVITED', message: 'You were not invited' });
+						}
+						
+						const inviterConnection = lobbyConnections.get(invitation.from.id);
+						
+						// Clean up invitation
+						activeInvitations.delete(msg.inviteId);
+						
+						if (inviterConnection) {
+							// Create actual game session
+							const token = newToken();
+							const host: PlayerInfo = { 
+								id: 'host', 
+								name: invitation.from.name, 
+								playerId: invitation.from.id,
+								token, 
+								connected: true, 
+								ws: inviterConnection.ws, 
+								lastSeen: Date.now() 
+							};
+							
+							const game: GameSession = { 
+								id: invitation.gameId, 
+								host, 
+								state: createInitialState(), 
+								createdAt: Date.now(), 
+								updatedAt: Date.now(), 
+								moveSeq: 0 
+							};
+							
+							games.set(invitation.gameId, game);
+							
+							// Update player statuses to 'in-game'
+							inviterConnection.player.status = 'in-game';
+							inviterConnection.player.gameId = invitation.gameId;
+							respondingConnection.player.status = 'in-game';
+							respondingConnection.player.gameId = invitation.gameId;
+							
+							// Broadcast status updates
+							broadcastToLobby({ 
+								type: 'lobby', 
+								action: 'player-status', 
+								playerId: invitation.from.id, 
+								status: 'in-game' 
+							});
+							broadcastToLobby({ 
+								type: 'lobby', 
+								action: 'player-status', 
+								playerId: invitation.to.id, 
+								status: 'in-game' 
+							});
+							
+							// Send game creation messages
+							send(inviterConnection.ws, { type: 'created', gameId: invitation.gameId, playerToken: token });
+							send(inviterConnection.ws, { type: 'state', gameId: invitation.gameId, version: game.state.version || 0, state: toPublicState(game.state) });
+							
+							// Auto-join guest
+							const guestToken = newToken();
+							const guest: PlayerInfo = { 
+								id: 'guest', 
+								name: invitation.to.name, 
+								playerId: invitation.to.id,
+								token: guestToken, 
+								connected: true, 
+								ws: respondingConnection.ws, 
+								lastSeen: Date.now() 
+							};
+							
+							game.guest = guest;
+							game.updatedAt = Date.now();
+							
+							send(respondingConnection.ws, { type: 'joined', gameId: invitation.gameId, role: 'guest', opponent: invitation.from.name });
+							send(respondingConnection.ws, { type: 'state', gameId: invitation.gameId, version: game.state.version || 0, state: toPublicState(game.state) });
+							send(inviterConnection.ws, { type: 'joined', gameId: invitation.gameId, role: 'host', opponent: invitation.to.name });
+							
+							// Start the game with randomized first player
+							const randomStart = Math.random() < 0.5;
+							game.startingPlayer = randomStart ? 'host' : 'guest';
+							
+							if (game.startingPlayer === 'guest') {
+								game.state = { ...game.state, currentPlayer: 'B' };
+							}
+							
+							broadcast(game, { 
+								type: 'gameStarting', 
+								gameId: game.id, 
+								startingPlayer: game.startingPlayer,
+								message: `Random selection: ${game.startingPlayer === 'host' ? game.host.name : game.guest.name} starts first!`
+							});
+							
+							broadcast(game, { 
+								type: 'state', 
+								gameId: game.id, 
+								version: game.state.version || 0, 
+								state: toPublicState(game.state) 
+							});
+						}
+						
+						// Send response back to both players
+						if (inviterConnection) {
+							send(inviterConnection.ws, { 
+								type: 'lobby', 
+								action: 'invitation-response', 
+								accepted: true, 
+								gameId: invitation.gameId, 
+								inviteId: msg.inviteId 
+							});
+						}
+						break;
+					}
+					
+					case 'decline-invite': {
+						const invitation = activeInvitations.get(msg.inviteId);
+						if (!invitation) {
+							return send(ws, { type: 'error', code: 'INVITATION_NOT_FOUND', message: 'Invitation expired or not found' });
+						}
+						
+						const respondingConnection = lobbyConnections.get(invitation.to.id);
+						if (!respondingConnection || respondingConnection.ws !== ws) {
+							return send(ws, { type: 'error', code: 'NOT_INVITED', message: 'You were not invited' });
+						}
+						
+						const inviterConnection = lobbyConnections.get(invitation.from.id);
+						
+						// Clean up invitation
+						activeInvitations.delete(msg.inviteId);
+						
+						// Reset inviter status to available
+						if (inviterConnection) {
+							inviterConnection.player.status = 'available';
+							broadcastToLobby({ 
+								type: 'lobby', 
+								action: 'player-status', 
+								playerId: invitation.from.id, 
+								status: 'available' 
+							});
+							
+							// Send response back to inviter
+							send(inviterConnection.ws, { 
+								type: 'lobby', 
+								action: 'invitation-response', 
+								accepted: false, 
+								gameId: invitation.gameId, 
+								inviteId: msg.inviteId 
+							});
+						}
+						break;
+					}
+				}
+				break;
+			}
+			
 			case 'create': {
 				const gameId = newId();
 				const token = newToken();
@@ -319,6 +678,32 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 					broadcast(game, { type: 'state', gameId: game.id, version: game.state.version || 0, state: toPublicState(game.state) });
 					if (game.state.ended) {
 						broadcast(game, { type: 'gameEnded', gameId: game.id, reason: 'end', final: toPublicState(game.state) });
+						
+						// Return players to lobby as available
+						const hostLobbyConnection = Array.from(lobbyConnections.values()).find(c => c.player.id === game.host.playerId);
+						const guestLobbyConnection = game.guest ? Array.from(lobbyConnections.values()).find(c => c.player.id === game.guest?.playerId) : undefined;
+						
+						if (hostLobbyConnection) {
+							hostLobbyConnection.player.status = 'available';
+							hostLobbyConnection.player.gameId = undefined;
+							broadcastToLobby({ 
+								type: 'lobby', 
+								action: 'player-status', 
+								playerId: game.host.playerId!, 
+								status: 'available' 
+							});
+						}
+						
+						if (guestLobbyConnection && game.guest) {
+							guestLobbyConnection.player.status = 'available';
+							guestLobbyConnection.player.gameId = undefined;
+							broadcastToLobby({ 
+								type: 'lobby', 
+								action: 'player-status', 
+								playerId: game.guest.playerId!, 
+								status: 'available' 
+							});
+						}
 					}
 				} catch (e: any) {
 					send(ws, { type: 'error', code: 'ENGINE_ERR', message: e.message });
@@ -332,6 +717,32 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 					game.state.ended = true;
 					game.updatedAt = Date.now();
 					broadcast(game, { type: 'gameEnded', gameId: game.id, reason: 'resign', final: toPublicState(game.state) });
+					
+					// Return players to lobby as available
+					const hostLobbyConnection = Array.from(lobbyConnections.values()).find(c => c.player.id === game.host.playerId);
+					const guestLobbyConnection = game.guest ? Array.from(lobbyConnections.values()).find(c => c.player.id === game.guest?.playerId) : undefined;
+					
+					if (hostLobbyConnection) {
+						hostLobbyConnection.player.status = 'available';
+						hostLobbyConnection.player.gameId = undefined;
+						broadcastToLobby({ 
+							type: 'lobby', 
+							action: 'player-status', 
+							playerId: game.host.playerId!, 
+							status: 'available' 
+						});
+					}
+					
+					if (guestLobbyConnection && game.guest) {
+						guestLobbyConnection.player.status = 'available';
+						guestLobbyConnection.player.gameId = undefined;
+						broadcastToLobby({ 
+							type: 'lobby', 
+							action: 'player-status', 
+							playerId: game.guest.playerId!, 
+							status: 'available' 
+						});
+					}
 				}
 				break;
 			}
@@ -347,8 +758,50 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 	ws.on('close', () => {
 		// Mark disconnected; do not delete game yet (allows reconnect logic later)
 		for (const g of games.values()) {
-			if (g.host.ws === ws) { g.host.connected = false; }
-			if (g.guest && g.guest.ws === ws) { g.guest.connected = false; }
+			if (g.host.ws === ws) { 
+				g.host.connected = false; 
+				// Update lobby status if player was in lobby
+				const lobbyConnection = Array.from(lobbyConnections.values()).find(c => c.player.id === g.host.playerId);
+				if (lobbyConnection) {
+					lobbyConnection.player.status = 'offline';
+					broadcastToLobby({ 
+						type: 'lobby', 
+						action: 'player-status', 
+						playerId: g.host.playerId!, 
+						status: 'offline' 
+					});
+				}
+			}
+			if (g.guest && g.guest.ws === ws) { 
+				g.guest.connected = false; 
+				// Update lobby status if player was in lobby
+				const lobbyConnection = Array.from(lobbyConnections.values()).find(c => c.player.id === g.guest?.playerId);
+				if (lobbyConnection) {
+					lobbyConnection.player.status = 'offline';
+					broadcastToLobby({ 
+						type: 'lobby', 
+						action: 'player-status', 
+						playerId: g.guest.playerId!, 
+						status: 'offline' 
+					});
+				}
+			}
+		}
+		
+		// Handle lobby disconnections
+		for (const [playerId, connection] of lobbyConnections) {
+			if (connection.ws === ws) {
+				lobbyConnections.delete(playerId);
+				broadcastToLobby({ type: 'lobby', action: 'player-left', playerId });
+				
+				// Clean up any invitations from this player
+				for (const [inviteId, invite] of activeInvitations) {
+					if (invite.from.id === playerId || invite.to.id === playerId) {
+						activeInvitations.delete(inviteId);
+					}
+				}
+				break;
+			}
 		}
 	});
 });

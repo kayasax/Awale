@@ -27,6 +27,8 @@ jobs:
         run: |
           mkdir site
           cp -r packages/web/dist/* site/
+          # Copy .htaccess for cache control
+          if [ -f packages/web/public/.htaccess ]; then cp packages/web/public/.htaccess site/; fi
           # Basic index fallback if needed
           if [ ! -f site/index.html ]; then echo '<!doctype html><title>Awale</title><h1>Build Missing</h1>' > site/index.html; fi
           # SPA fallback and disable Jekyll
