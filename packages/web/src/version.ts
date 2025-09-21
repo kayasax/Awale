@@ -6,4 +6,4 @@ declare const process: any;
 export const APP_VERSION: string =
 	(typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env.VITE_APP_VERSION) ||
 	(typeof process !== 'undefined' && process.env && process.env.APP_VERSION) ||
-	'0.5.12-LOBBY-GAME-TRANSITION';
+	'0.5.13-INVITATION-DEBUGGING';

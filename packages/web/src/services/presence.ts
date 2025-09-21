@@ -129,6 +129,15 @@ export class PresenceService {
    * Accept game invitation
    */
   static acceptInvitation(inviteId: string): void {
+    const invitation = this.state.pendingInvitations.find(inv => inv.id === inviteId);
+    console.log('🌐 Attempting to accept invitation:', inviteId);
+    console.log('🌐 Found invitation in pending list:', invitation ? 'YES' : 'NO');
+    
+    if (invitation) {
+      const ageMs = Date.now() - invitation.timestamp;
+      console.log('🌐 Invitation age:', Math.floor(ageMs / 1000), 'seconds');
+    }
+    
     this.sendMessage({
       type: 'lobby',
       action: 'accept-invite',
@@ -190,6 +199,22 @@ export class PresenceService {
    */
   private static handleMessage(msg: ServerToClient): void {
     console.log('🌐 Lobby message received:', msg);
+
+    // Handle error messages
+    if (msg.type === 'error') {
+      console.error('🌐 Server error:', msg.code, msg.message);
+      
+      // Handle specific error cases
+      if (msg.code === 'INVITATION_NOT_FOUND') {
+        console.warn('🌐 Invitation expired or not found - removing from pending invitations');
+        // Clear any stale invitations that might be causing issues
+        this.state.pendingInvitations = [];
+      }
+      
+      // Still notify listeners so UI can show error state if needed
+      this.notifyListeners();
+      return;
+    }
 
     // Handle game transition messages
     if (msg.type === 'joined' && 'gameId' in msg && 'role' in msg) {
@@ -262,7 +287,8 @@ export class PresenceService {
           status: 'pending'
         };
         this.state.pendingInvitations.push(invitation);
-        console.log('🌐 Game invitation received from:', msg.from.name);
+        console.log('🌐 Game invitation received from:', msg.from.name, 'InviteId:', msg.inviteId, 'GameId:', msg.gameId);
+        console.log('🌐 Current pending invitations:', this.state.pendingInvitations.length);
         break;
 
       case 'invitation-response':
