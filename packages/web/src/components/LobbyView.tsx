@@ -121,6 +121,37 @@ export const LobbyView: React.FC<LobbyViewProps> = ({ onStartGame, onExit, serve
         </button>
       </header>
 
+      {/* Pending Invitations - TOP PRIORITY DISPLAY */}
+      {lobbyState.pendingInvitations.length > 0 && (
+        <div className="invitations-panel urgent">
+          <h3>🎮 Game Invitations</h3>
+          {lobbyState.pendingInvitations.map(invitation => {
+            const fromPlayer = lobbyState.players.find(p => p.id === invitation.from);
+            return (
+              <div key={invitation.id} className="invitation-card">
+                <div className="invitation-info">
+                  <span>🎮 Game invite from <strong>{fromPlayer?.name || 'Unknown'}</strong></span>
+                </div>
+                <div className="invitation-actions">
+                  <button 
+                    className="btn btn-accept"
+                    onClick={() => handleInvitationResponse(invitation.id, true)}
+                  >
+                    Accept
+                  </button>
+                  <button 
+                    className="btn btn-decline"
+                    onClick={() => handleInvitationResponse(invitation.id, false)}
+                  >
+                    Decline
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       <div className="lobby-content">
         {/* Players List */}
         <div className="lobby-players">
@@ -212,37 +243,6 @@ export const LobbyView: React.FC<LobbyViewProps> = ({ onStartGame, onExit, serve
           </form>
         </div>
       </div>
-
-      {/* Pending Invitations */}
-      {lobbyState.pendingInvitations.length > 0 && (
-        <div className="invitations-panel">
-          <h3>Game Invitations</h3>
-          {lobbyState.pendingInvitations.map(invitation => {
-            const fromPlayer = lobbyState.players.find(p => p.id === invitation.from);
-            return (
-              <div key={invitation.id} className="invitation-card">
-                <div className="invitation-info">
-                  <span>🎮 Game invite from <strong>{fromPlayer?.name || 'Unknown'}</strong></span>
-                </div>
-                <div className="invitation-actions">
-                  <button 
-                    className="btn btn-accept"
-                    onClick={() => handleInvitationResponse(invitation.id, true)}
-                  >
-                    Accept
-                  </button>
-                  <button 
-                    className="btn btn-decline"
-                    onClick={() => handleInvitationResponse(invitation.id, false)}
-                  >
-                    Decline
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
 
       {/* Invite Modal */}
       {showInviteModal && selectedPlayer && (
