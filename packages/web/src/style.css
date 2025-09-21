@@ -75,13 +75,13 @@ header { margin-bottom: 1rem; }
 }
 
 /* Enhanced seeds with SVG patterns for more realism */
-.pit .seed:nth-child(1) { background: url('/assets/graphics/seeds/seed-light-brown.svg') center/cover, radial-gradient(circle at 30% 30%, #f3e0b5, #b1874a); }
-.pit .seed:nth-child(2) { background: url('/assets/graphics/seeds/seed-medium-brown.svg') center/cover, radial-gradient(circle at 30% 30%, #e9d39f, #9b7740); }
-.pit .seed:nth-child(3) { background: url('/assets/graphics/seeds/seed-dark-brown.svg') center/cover, radial-gradient(circle at 30% 30%, #d4c194, #8b6f3f); }
-.pit .seed:nth-child(4) { background: url('/assets/graphics/seeds/seed-speckled-tan.svg') center/cover, radial-gradient(circle at 30% 30%, #f0e2b8, #a6854a); }
-.pit .seed:nth-child(5n+1) { background: url('/assets/graphics/seeds/seed-stone-gray.svg') center/cover, radial-gradient(circle at 30% 30%, #d8d0c0, #9b9189); }
-.pit .seed:nth-child(7n+2) { background: url('/assets/graphics/seeds/seed-light-brown.svg') center/cover, radial-gradient(circle at 30% 30%, #f3e0b5, #b1874a); }
-.pit .seed:nth-child(11n+3) { background: url('/assets/graphics/seeds/seed-medium-brown.svg') center/cover, radial-gradient(circle at 30% 30%, #e9d39f, #9b7740); }
+.pit .seed:nth-child(1) { background: url('./graphics/seeds/seed-light-brown.svg') center/cover, radial-gradient(circle at 30% 30%, #f3e0b5, #b1874a); }
+.pit .seed:nth-child(2) { background: url('./graphics/seeds/seed-medium-brown.svg') center/cover, radial-gradient(circle at 30% 30%, #e9d39f, #9b7740); }
+.pit .seed:nth-child(3) { background: url('./graphics/seeds/seed-dark-brown.svg') center/cover, radial-gradient(circle at 30% 30%, #d4c194, #8b6f3f); }
+.pit .seed:nth-child(4) { background: url('./graphics/seeds/seed-speckled-tan.svg') center/cover, radial-gradient(circle at 30% 30%, #f0e2b8, #a6854a); }
+.pit .seed:nth-child(5n+1) { background: url('./graphics/seeds/seed-stone-gray.svg') center/cover, radial-gradient(circle at 30% 30%, #d8d0c0, #9b9189); }
+.pit .seed:nth-child(7n+2) { background: url('./graphics/seeds/seed-light-brown.svg') center/cover, radial-gradient(circle at 30% 30%, #f3e0b5, #b1874a); }
+.pit .seed:nth-child(11n+3) { background: url('./graphics/seeds/seed-medium-brown.svg') center/cover, radial-gradient(circle at 30% 30%, #e9d39f, #9b7740); }
 .pit .seed.overflow { width:12px; height:12px; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; background:#364; color:#fff; }
 .pit .seeds-count { font-size:13px; font-weight:600; position:absolute; top:-10px; left:-6px; background:#14171bd9; padding:2px 6px; border-radius:10px; letter-spacing:.5px; box-shadow:0 2px 6px #000e; z-index:5; border:1px solid #2d3338; -webkit-backdrop-filter:blur(2px); backdrop-filter:blur(2px); }
 .pit.empty { opacity:.55; }
@@ -250,7 +250,8 @@ header { margin-bottom: 1rem; }
 	z-index: 100;
 }
 .theme-wood .pit.captured::after, .theme-wood .pit.captured::before { filter:brightness(1.25) saturate(1.15); }
-.theme-wood .seed { background:radial-gradient(circle at 30% 30%, #f3e0b5, #b1874a); }
+.theme-wood .seed { background:radial-gradient(circle at 30% 30%, #f3e0b5, #b1874a); z-index: 0 !important; }
+.theme-wood .seeds-list { z-index: 0 !important; }
 .theme-wood .seeds-count { background:#362214dc; border-color:#7a5330; color:#ffe9d1; }
 .theme-wood .scores .score { background:#714b27; box-shadow:0 1px 2px #0009 inset, 0 0 0 1px #55371c; }
 .theme-wood .scores .score.you { color:#d6ffdc; }
