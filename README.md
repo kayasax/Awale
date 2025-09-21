@@ -2,7 +2,8 @@
 
 ![Build](https://img.shields.io/github/actions/workflow/status/kayasax/Awale/build.yml?branch=master&label=CI)
 ![Pages Deploy](https://img.shields.io/github/actions/workflow/status/kayasax/Awale/pages.yml?branch=master&label=Pages)
-![Release](https://img.shields.io/github/v/tag/kayasax/Awale?label=latest%20tag)
+![Release](https://img.shields.io/github/v/tag/kayasax/Awale?label=latest%20release&color=success)
+![Version](https://img.shields.io/badge/version-v0.5.15-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
 **▶ Live Experience:** https://kayasax.github.io/Awale/
