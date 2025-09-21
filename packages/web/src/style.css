@@ -31,7 +31,7 @@ header { margin-bottom: 1rem; }
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
-.pit.highlight { outline: 3px solid #4caf50; animation: pulse 1.8s infinite; position: relative; z-index: 100; }
+.pit.highlight { outline: 3px solid #4caf50; animation: pulse 1.8s infinite; position: relative; z-index: 999; }
 .pit.last-move { box-shadow: 0 0 0 3px #ffb300; }
 .pit.gain { animation: popGain 500ms ease; }
 .pit.loss { animation: popLoss 500ms ease; }
@@ -62,7 +62,7 @@ header { margin-bottom: 1rem; }
 .pit .delta { position:absolute; top:-10px; font-size:11px; font-weight:700; color:#66bb6a; animation: rise 900ms ease forwards; text-shadow:0 1px 2px #0008; }
 .pit.loss .delta { color:#ef5350; }
 /* Seed visuals */
-.pit .seeds-list { position:absolute; inset:6px 6px 14px 6px; display:flex; flex-wrap:wrap; align-content:flex-start; gap:4px 4px; pointer-events:none; z-index: 0; }
+.pit .seeds-list { position:absolute; inset:6px 6px 14px 6px; display:flex; flex-wrap:wrap; align-content:flex-start; gap:4px 4px; pointer-events:none; z-index: -1; }
 .pit .seed { 
 	width:12px; 
 	height:12px; 
@@ -71,7 +71,7 @@ header { margin-bottom: 1rem; }
 	box-shadow:0 0 3px #000a; 
 	animation: seedPop .45s ease; 
 	position: relative; 
-	z-index: 0;
+	z-index: -1;
 }
 
 /* Enhanced seeds with SVG patterns for more realism */
@@ -247,11 +247,11 @@ header { margin-bottom: 1rem; }
 .theme-wood .pit.highlight { 
 	outline-color:#ffcc5a; 
 	box-shadow: 0 0 0 3px #ffcc5a, inset 0 2px 4px #0008; 
-	z-index: 100;
+	z-index: 999;
 }
 .theme-wood .pit.captured::after, .theme-wood .pit.captured::before { filter:brightness(1.25) saturate(1.15); }
-.theme-wood .seed { background:radial-gradient(circle at 30% 30%, #f3e0b5, #b1874a); z-index: 0 !important; }
-.theme-wood .seeds-list { z-index: 0 !important; }
+.theme-wood .seed { background:radial-gradient(circle at 30% 30%, #f3e0b5, #b1874a); z-index: -1 !important; }
+.theme-wood .seeds-list { z-index: -1 !important; }
 .theme-wood .seeds-count { background:#362214dc; border-color:#7a5330; color:#ffe9d1; }
 .theme-wood .scores .score { background:#714b27; box-shadow:0 1px 2px #0009 inset, 0 0 0 1px #55371c; }
 .theme-wood .scores .score.you { color:#d6ffdc; }
