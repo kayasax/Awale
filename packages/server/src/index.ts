@@ -4,6 +4,7 @@ import { randomBytes } from 'crypto';
 import { ClientToServer, ServerToClient, GameStateSnapshot, LobbyPlayer, ChatMessage } from './protocol.js';
 import { createInitialState as engineCreateInitial, applyMove, getLegalMoves } from '@awale/core';
 import type { GameState } from '@awale/shared';
+import { analytics, getGameType, calculateGameDuration, type GameType, type GameEndReason } from './analytics.js';
 
 const PORT = parseInt(process.env.PORT || '8080', 10);
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN; // Optional strict origin check
@@ -131,6 +132,23 @@ setInterval(() => {
 	}
 }, 60_000).unref();
 
+// Periodic lobby metrics tracking
+function trackLobbyMetrics() {
+	const connections = Array.from(lobbyConnections.values());
+	const availablePlayers = connections.filter(c => c.player.status === 'available').length;
+	const inGamePlayers = connections.filter(c => c.player.status === 'in-game').length;
+	
+	analytics.trackLobbyMetrics({
+		connectedPlayers: connections.length,
+		availablePlayers,
+		inGamePlayers,
+		activeGames: games.size
+	});
+}
+
+// Track metrics every 5 minutes
+setInterval(trackLobbyMetrics, 5 * 60 * 1000).unref();
+
 function send(ws: WebSocket, msg: ServerToClient) {
 	ws.send(JSON.stringify(msg));
 }
@@ -204,6 +222,9 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 							lastSeen: Date.now()
 						});
 						
+						// Track lobby connection
+						analytics.trackLobbyConnection(player.id, player.name, 'connect');
+						
 						// Send current lobby state to joining player
 						const players = Array.from(lobbyConnections.values()).map(c => c.player);
 						send(ws, { type: 'lobby', players, messages: lobbyChatMessages.slice(-50) });
@@ -217,6 +238,9 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 						// Find the player by WebSocket connection
 						for (const [playerId, connection] of lobbyConnections) {
 							if (connection.ws === ws) {
+								// Track lobby disconnection
+								analytics.trackLobbyConnection(connection.player.id, connection.player.name, 'disconnect');
+								
 								lobbyConnections.delete(playerId);
 								broadcastToLobby({ type: 'lobby', action: 'player-left', playerId });
 								break;
@@ -306,6 +330,9 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 							timestamp: Date.now()
 						});
 						
+						// Track invitation sent
+						analytics.trackInvitation(fromConnection.player.id, toConnection.player.id, 'sent');
+						
 						// Send invitation to target player
 						send(toConnection.ws, { 
 							type: 'lobby', 
@@ -342,6 +369,9 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 						
 						// Clean up invitation
 						activeInvitations.delete(msg.inviteId);
+						
+						// Track invitation accepted
+						analytics.trackInvitation(invitation.from.id, invitation.to.id, 'accepted');
 						
 						if (inviterConnection) {
 							// Create actual game session
@@ -462,6 +492,9 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 						// Clean up invitation
 						activeInvitations.delete(msg.inviteId);
 						
+						// Track invitation declined
+						analytics.trackInvitation(invitation.from.id, invitation.to.id, 'declined');
+						
 						// Reset inviter status to available
 						if (inviterConnection) {
 							inviterConnection.player.status = 'available';
@@ -501,6 +534,10 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 				};
 				const game: GameSession = { id: gameId, host, state: createInitialState(), createdAt: Date.now(), updatedAt: Date.now(), moveSeq: 0 };
 				games.set(gameId, game);
+				
+				// Track game creation
+				analytics.trackGameCreated(gameId, getGameType('create'), host.playerId || host.id);
+				
 				send(ws, { type: 'created', gameId, playerToken: token });
 				send(ws, { type: 'state', gameId, version: game.state.version || 0, state: toPublicState(game.state) });
 				break;
@@ -601,6 +638,10 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 					lastSeen: Date.now() 
 				};
 				game.guest = guest; game.updatedAt = Date.now();
+				
+				// Track player joining
+				analytics.trackPlayerJoined(game.id, guest.playerId || guest.id, 'guest', getGameType('join'));
+				
 				send(ws, { type: 'joined', gameId: game.id, role: 'guest', opponent: game.host.name });
 				send(ws, { type: 'state', gameId: game.id, version: game.state.version || 0, state: toPublicState(game.state) });
 				if (game.host.ws && game.host.connected) send(game.host.ws, { type: 'joined', gameId: game.id, role: 'host', opponent: guest.name });
@@ -609,6 +650,14 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 				if (!game.startingPlayer && game.host.connected && game.guest.connected) {
 					const randomStart = Math.random() < 0.5;
 					game.startingPlayer = randomStart ? 'host' : 'guest';
+					
+					// Track game start
+					analytics.trackGameStarted(
+						game.id, 
+						getGameType('join'), 
+						game.host.playerId || game.host.id, 
+						game.guest.playerId || game.guest.id
+					);
 					
 					// Create appropriate messages
 					const startMessages = {
@@ -677,6 +726,24 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 					broadcast(game, { type: 'moveApplied', gameId: game.id, seq: game.moveSeq, pit: msg.pit, player, version: game.state.version || 0, captured: result.capturedThisMove });
 					broadcast(game, { type: 'state', gameId: game.id, version: game.state.version || 0, state: toPublicState(game.state) });
 					if (game.state.ended) {
+						// Track game completion
+						const duration = calculateGameDuration(game.createdAt, Date.now());
+						const winner = game.state.winner === 'A' ? 'host' : game.state.winner === 'B' ? 'guest' : 'draw';
+						
+						analytics.trackGameEnded(
+							{
+								gameId: game.id,
+								gameType: getGameType('join'),
+								playerCount: 2,
+								duration,
+								movesPlayed: game.moveSeq,
+								endReason: 'natural-end',
+								winner: winner as 'host' | 'guest' | 'draw'
+							},
+							game.host.playerId || game.host.id,
+							game.guest?.playerId || game.guest?.id
+						);
+						
 						broadcast(game, { type: 'gameEnded', gameId: game.id, reason: 'end', final: toPublicState(game.state) });
 						
 						// Return players to lobby as available
@@ -716,6 +783,26 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 				if (!game.state.ended) {
 					game.state.ended = true;
 					game.updatedAt = Date.now();
+					
+					// Track resignation
+					const duration = calculateGameDuration(game.createdAt, Date.now());
+					const resigner = (ws === game.host.ws) ? 'host' : 'guest';
+					const winner = resigner === 'host' ? 'guest' : 'host';
+					
+					analytics.trackGameEnded(
+						{
+							gameId: game.id,
+							gameType: getGameType('join'),
+							playerCount: 2,
+							duration,
+							movesPlayed: game.moveSeq,
+							endReason: 'resignation',
+							winner: winner as 'host' | 'guest'
+						},
+						game.host.playerId || game.host.id,
+						game.guest?.playerId || game.guest?.id
+					);
+					
 					broadcast(game, { type: 'gameEnded', gameId: game.id, reason: 'resign', final: toPublicState(game.state) });
 					
 					// Return players to lobby as available
@@ -808,5 +895,18 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 
 server.listen(PORT, () => {
 	console.log(JSON.stringify({ level: 'info', msg: 'server_listening', port: PORT }));
+});
+
+// Graceful shutdown handling
+process.on('SIGINT', async () => {
+	console.log('📊 Shutting down server and flushing analytics...');
+	await analytics.shutdown();
+	process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+	console.log('📊 Shutting down server and flushing analytics...');
+	await analytics.shutdown();
+	process.exit(0);
 });
 // ...rest of file unchanged...
