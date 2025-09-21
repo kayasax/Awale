@@ -33,6 +33,9 @@ export const LobbyView: React.FC<LobbyViewProps> = ({ onStartGame, onExit, serve
   useEffect(() => {
     console.log('🌐 LobbyView mounting, connecting to:', serverUrl);
     
+    // Set the game start callback
+    PresenceService.setGameStartCallback(onStartGame);
+    
     const unsubscribe = PresenceService.subscribe((state) => {
       console.log('🌐 LobbyView received state update:', { 
         isConnected: state.isConnected, 
@@ -46,10 +49,11 @@ export const LobbyView: React.FC<LobbyViewProps> = ({ onStartGame, onExit, serve
 
     return () => {
       console.log('🌐 LobbyView unmounting, disconnecting');
+      PresenceService.setGameStartCallback(null); // Clear callback
       unsubscribe();
       PresenceService.disconnect();
     };
-  }, [serverUrl]);
+  }, [serverUrl, onStartGame]);
 
   // Handle chat message submission
   const handleChatSubmit = (e: React.FormEvent) => {
