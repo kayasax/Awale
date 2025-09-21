@@ -79,5 +79,25 @@ fs.mkdirSync(assetsDir, { recursive: true });
     fs.copyFileSync(cssPath, path.join(assetsDir, 'style.css'));
   }
 
+  // Copy src/assets directory recursively to assets/
+  const srcAssetsDir = path.join(__dirname, 'src', 'assets');
+  if (fs.existsSync(srcAssetsDir)) {
+    const copyDir = (src, dest) => {
+      if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
+      const entries = fs.readdirSync(src);
+      for (const entry of entries) {
+        const srcPath = path.join(src, entry);
+        const destPath = path.join(dest, entry);
+        const stat = fs.statSync(srcPath);
+        if (stat.isFile()) {
+          fs.copyFileSync(srcPath, destPath);
+        } else if (stat.isDirectory()) {
+          copyDir(srcPath, destPath);
+        }
+      }
+    };
+    copyDir(srcAssetsDir, path.join(assetsDir));
+  }
+
   console.log('Esbuild production bundle complete. Dist at packages/web/dist');
 })();
