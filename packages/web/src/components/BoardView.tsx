@@ -115,6 +115,21 @@ const Pit: React.FC<PitProps> = ({ label, seeds, disabled, highlight, onClick, l
   const seedVisuals = Array.from({length: Math.min(seeds, maxSeeds)});
   const overflow = seeds - maxSeeds;
   
+  // Seed variant options for realistic diversity
+  const seedVariants = [
+    'seed-dark-brown',
+    'seed-medium-brown', 
+    'seed-light-brown',
+    'seed-speckled-tan',
+    'seed-stone-gray'
+  ];
+  
+  // Generate consistent seed variants based on pit position and seed index
+  const getSeedVariant = (seedIndex: number) => {
+    const variantIndex = (label + seedIndex) % seedVariants.length;
+    return seedVariants[variantIndex];
+  };
+  
   // Android-safe touch handling
   const handleTouchStart = (e: React.TouchEvent<HTMLButtonElement>) => {
     if (!disabled && onClick) {
@@ -143,7 +158,7 @@ const Pit: React.FC<PitProps> = ({ label, seeds, disabled, highlight, onClick, l
     >
       {seeds>0 ? <span className="seeds-count" aria-hidden="true">{seeds}</span> : null}
       <span className="seeds-list" aria-hidden="true">
-        {seedVisuals.map((_,i)=>(<span key={i} className="seed" />))}
+        {seedVisuals.map((_,i)=>(<span key={i} className={`seed ${getSeedVariant(i)}`} />))}
         {overflow > 0 && <span className="seed overflow">+{overflow}</span>}
       </span>
       {showDelta && <span className="delta" aria-hidden="true">{delta>0? '+'+delta : delta}</span>}

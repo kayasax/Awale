@@ -1,4 +1,13 @@
-﻿html { height:100%; }
+﻿Request URL
+https://kayasax.github.io/Awale/assets/assets/graphics/seeds/seed-medium-brown.svg
+Request Method
+GET
+Status Code
+404 Not Found
+Remote Address
+185.199.108.153:443
+Referrer Policy
+strict-origin-when-cross-originhtml { height:100%; }
 body { margin:0; }
 
 /* Android-specific fixes for touch behavior */
@@ -1166,4 +1175,40 @@ footer.site-footer a:hover { text-decoration:underline; }
     max-width: none;
     margin: 20px 0;
   }
+}
+
+/* 🌑 DARK THEME PIT OVERRIDES - HIGHEST PRIORITY - 2025-09-20 23:00 */
+.theme-dark .pit,
+body.theme-dark .pit,
+html.theme-dark .pit {
+	background: radial-gradient(circle at 50% 50%, #2a2a2a 0%, #3a3a3a 30%, #4a4a4a 60%, #5a5a5a 100%) !important;
+	border: 2px solid #3a3a3a !important;
+	border-radius: 50% !important;
+	box-shadow: 
+		inset 0 8px 16px rgba(0,0,0,0.8),
+		inset 0 4px 8px rgba(0,0,0,0.7),
+		inset 0 0 0 2px rgba(0,0,0,0.4),
+		0 0 2px rgba(255, 255, 255, 0.2) !important;
+}
+
+.theme-dark .row.opponent .pit,
+body.theme-dark .row.opponent .pit,
+html.theme-dark .row.opponent .pit {
+	background: radial-gradient(circle at 50% 50%, #5a5a5a 0%, #6a6a6a 30%, #7a7a7a 60%, #8a8a8a 100%) !important;
+	border: 2px solid #6a6a6a !important;
+	border-radius: 50% !important;
+	box-shadow: 
+		inset 0 6px 12px rgba(0,0,0,0.6),
+		inset 0 3px 6px rgba(0,0,0,0.5),
+		inset 0 0 0 1px rgba(0,0,0,0.3),
+		0 0 3px rgba(255, 255, 255, 0.3) !important;
+}
+
+.theme-dark .pit::before,
+body.theme-dark .pit::before,
+html.theme-dark .pit::before,
+.theme-dark .row.opponent .pit::before,
+body.theme-dark .row.opponent .pit::before,
+html.theme-dark .row.opponent .pit::before {
+	display: none !important;
 }

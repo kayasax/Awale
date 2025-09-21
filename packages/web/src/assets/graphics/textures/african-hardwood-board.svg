@@ -1,0 +1,99 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <defs>
+    <!-- High-quality African hardwood texture -->
+    <linearGradient id="wood-base" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#6D4925"/>
+      <stop offset="15%" stop-color="#5A3C1D"/>
+      <stop offset="30%" stop-color="#6D4925"/>
+      <stop offset="45%" stop-color="#7A5430"/>
+      <stop offset="60%" stop-color="#5A3C1D"/>
+      <stop offset="75%" stop-color="#6D4925"/>
+      <stop offset="90%" stop-color="#4B3218"/>
+      <stop offset="100%" stop-color="#6D4925"/>
+    </linearGradient>
+    
+    <!-- Wood grain pattern with realistic curves -->
+    <pattern id="wood-grain" x="0" y="0" width="400" height="300" patternUnits="userSpaceOnUse">
+      <rect width="400" height="300" fill="url(#wood-base)"/>
+      
+      <!-- Primary wood grain lines -->
+      <g fill="none" stroke="#4B3218" stroke-width="1.2" opacity="0.7">
+        <path d="M0,50 Q80,45 160,55 Q240,65 320,50 Q360,45 400,50"/>
+        <path d="M0,100 Q70,90 140,105 Q210,120 280,100 Q340,95 400,100"/>
+        <path d="M0,150 Q90,140 180,155 Q270,170 360,150 Q380,145 400,150"/>
+        <path d="M0,200 Q60,195 120,205 Q180,215 240,200 Q300,195 400,200"/>
+        <path d="M0,250 Q100,240 200,255 Q300,270 400,250"/>
+      </g>
+      
+      <!-- Secondary grain detail -->
+      <g fill="none" stroke="#855D33" stroke-width="0.6" opacity="0.4">
+        <path d="M0,30 Q85,28 170,32 Q255,36 340,30 Q370,28 400,30"/>
+        <path d="M0,75 Q95,72 190,78 Q285,84 380,75 Q390,73 400,75"/>
+        <path d="M0,125 Q110,120 220,130 Q330,140 400,125"/>
+        <path d="M0,175 Q75,172 150,178 Q225,184 300,175 Q350,172 400,175"/>
+        <path d="M0,225 Q115,220 230,230 Q345,240 400,225"/>
+        <path d="M0,275 Q80,272 160,278 Q240,284 320,275 Q360,272 400,275"/>
+      </g>
+      
+      <!-- Subtle highlight lines for depth -->
+      <g fill="none" stroke="#A67C52" stroke-width="0.4" opacity="0.3">
+        <path d="M0,20 Q90,18 180,22 Q270,26 360,20 Q380,18 400,20"/>
+        <path d="M0,85 Q105,82 210,88 Q315,94 400,85"/>
+        <path d="M0,135 Q95,132 190,138 Q285,144 380,135 Q390,133 400,135"/>
+        <path d="M0,185 Q85,182 170,188 Q255,194 340,185 Q370,182 400,185"/>
+        <path d="M0,235 Q115,232 230,238 Q345,244 400,235"/>
+      </g>
+      
+      <!-- Natural wood knots and imperfections -->
+      <g fill="#4B3218" opacity="0.6">
+        <ellipse cx="120" cy="80" rx="8" ry="3" transform="rotate(15 120 80)"/>
+        <ellipse cx="280" cy="180" rx="6" ry="2.5" transform="rotate(-20 280 180)"/>
+        <ellipse cx="350" cy="120" rx="4" ry="2" transform="rotate(35 350 120)"/>
+      </g>
+      
+      <!-- Wood knot highlights -->
+      <g fill="#855D33" opacity="0.4">
+        <ellipse cx="122" cy="78" rx="3" ry="1" transform="rotate(15 122 78)"/>
+        <ellipse cx="282" cy="178" rx="2.5" ry="1" transform="rotate(-20 282 178)"/>
+        <ellipse cx="352" cy="118" rx="1.5" ry="0.8" transform="rotate(35 352 118)"/>
+      </g>
+    </pattern>
+    
+    <!-- Filter for wood surface texture -->
+    <filter id="wood-texture" x="0" y="0" width="100%" height="100%">
+      <feTurbulence baseFrequency="0.9 0.3" numOctaves="3" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.5"/>
+    </filter>
+    
+    <!-- Carved pit texture -->
+    <radialGradient id="pit-gradient" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#855D33"/>
+      <stop offset="30%" stop-color="#6D4925"/>
+      <stop offset="70%" stop-color="#5A3C1D"/>
+      <stop offset="100%" stop-color="#4B3218"/>
+    </radialGradient>
+    
+    <!-- Pit shadow filter -->
+    <filter id="pit-shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dx="0" dy="2" result="offset"/>
+      <feFlood flood-color="#2F1B14" flood-opacity="0.8"/>
+      <feComposite in2="offset" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Main wood surface -->
+  <rect width="400" height="300" fill="url(#wood-grain)" filter="url(#wood-texture)"/>
+  
+  <!-- Example carved pits for demonstration -->
+  <circle cx="100" cy="75" r="25" fill="url(#pit-gradient)" filter="url(#pit-shadow)"/>
+  <circle cx="180" cy="75" r="25" fill="url(#pit-gradient)" filter="url(#pit-shadow)"/>
+  <circle cx="260" cy="75" r="25" fill="url(#pit-gradient)" filter="url(#pit-shadow)"/>
+  <circle cx="340" cy="75" r="25" fill="url(#pit-gradient)" filter="url(#pit-shadow)"/>
+  <circle cx="100" cy="135" r="25" fill="url(#pit-gradient)" filter="url(#pit-shadow)"/>
+  <circle cx="180" cy="135" r="25" fill="url(#pit-gradient)" filter="url(#pit-shadow)"/>
+</svg>

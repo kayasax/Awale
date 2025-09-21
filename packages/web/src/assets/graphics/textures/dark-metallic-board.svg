@@ -1,0 +1,115 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <defs>
+    <!-- Dark metallic surface texture -->
+    <linearGradient id="dark-metal-base" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#2C3136"/>
+      <stop offset="15%" stop-color="#23272B"/>
+      <stop offset="30%" stop-color="#2C3136"/>
+      <stop offset="45%" stop-color="#363C42"/>
+      <stop offset="60%" stop-color="#23272B"/>
+      <stop offset="75%" stop-color="#2C3136"/>
+      <stop offset="90%" stop-color="#1A1E22"/>
+      <stop offset="100%" stop-color="#2C3136"/>
+    </linearGradient>
+    
+    <!-- Dark metallic pattern with industrial feel -->
+    <pattern id="dark-texture" x="0" y="0" width="400" height="300" patternUnits="userSpaceOnUse">
+      <rect width="400" height="300" fill="url(#dark-metal-base)"/>
+      
+      <!-- Brushed metal lines -->
+      <g fill="none" stroke="#1A1E22" stroke-width="1.5" opacity="0.8">
+        <path d="M0,50 Q80,48 160,52 Q240,56 320,50 Q360,48 400,50"/>
+        <path d="M0,100 Q70,95 140,105 Q210,115 280,100 Q340,98 400,100"/>
+        <path d="M0,150 Q90,145 180,155 Q270,165 360,150 Q380,148 400,150"/>
+        <path d="M0,200 Q60,198 120,202 Q180,206 240,200 Q300,198 400,200"/>
+        <path d="M0,250 Q100,245 200,255 Q300,265 400,250"/>
+      </g>
+      
+      <!-- Lighter metallic highlights */
+      <g fill="none" stroke="#40474E" stroke-width="0.8" opacity="0.6">
+        <path d="M0,30 Q85,28 170,32 Q255,36 340,30 Q370,28 400,30"/>
+        <path d="M0,75 Q95,72 190,78 Q285,84 380,75 Q390,73 400,75"/>
+        <path d="M0,125 Q110,120 220,130 Q330,140 400,125"/>
+        <path d="M0,175 Q75,172 150,178 Q225,184 300,175 Q350,172 400,175"/>
+        <path d="M0,225 Q115,220 230,230 Q345,240 400,225"/>
+        <path d="M0,275 Q80,272 160,278 Q240,284 320,275 Q360,272 400,275"/>
+      </g>
+      
+      <!-- Subtle highlight streaks -->
+      <g fill="none" stroke="#77818A" stroke-width="0.4" opacity="0.4">
+        <path d="M0,20 Q90,18 180,22 Q270,26 360,20 Q380,18 400,20"/>
+        <path d="M0,85 Q105,82 210,88 Q315,94 400,85"/>
+        <path d="M0,135 Q95,132 190,138 Q285,144 380,135 Q390,133 400,135"/>
+        <path d="M0,185 Q85,182 170,188 Q255,194 340,185 Q370,182 400,185"/>
+        <path d="M0,235 Q115,232 230,238 Q345,244 400,235"/>
+      </g>
+      
+      <!-- Industrial rivets and details -->
+      <g fill="#1A1E22" opacity="0.7">
+        <circle cx="50" cy="50" r="3"/>
+        <circle cx="150" cy="50" r="3"/>
+        <circle cx="250" cy="50" r="3"/>
+        <circle cx="350" cy="50" r="3"/>
+        <circle cx="100" cy="150" r="3"/>
+        <circle cx="200" cy="150" r="3"/>
+        <circle cx="300" cy="150" r="3"/>
+        <circle cx="50" cy="250" r="3"/>
+        <circle cx="150" cy="250" r="3"/>
+        <circle cx="250" cy="250" r="3"/>
+        <circle cx="350" cy="250" r="3"/>
+      </g>
+      
+      <!-- Rivet highlights */
+      <g fill="#40474E" opacity="0.5">
+        <circle cx="50" cy="50" r="1.5"/>
+        <circle cx="150" cy="50" r="1.5"/>
+        <circle cx="250" cy="50" r="1.5"/>
+        <circle cx="350" cy="50" r="1.5"/>
+        <circle cx="100" cy="150" r="1.5"/>
+        <circle cx="200" cy="150" r="1.5"/>
+        <circle cx="300" cy="150" r="1.5"/>
+        <circle cx="50" cy="250" r="1.5"/>
+        <circle cx="150" cy="250" r="1.5"/>
+        <circle cx="250" cy="250" r="1.5"/>
+        <circle cx="350" cy="250" r="1.5"/>
+      </g>
+    </pattern>
+    
+    <!-- Filter for metallic surface texture */
+    <filter id="metal-texture" x="0" y="0" width="100%" height="100%">
+      <feTurbulence baseFrequency="0.7 0.2" numOctaves="2" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="1"/>
+    </filter>
+    
+    <!-- Dark carved pit texture */
+    <radialGradient id="dark-pit-gradient" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#40474E"/>
+      <stop offset="30%" stop-color="#2C3136"/>
+      <stop offset="70%" stop-color="#23272B"/>
+      <stop offset="100%" stop-color="#1A1E22"/>
+    </radialGradient>
+    
+    <!-- Dark pit shadow filter */
+    <filter id="dark-pit-shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dx="0" dy="2" result="offset"/>
+      <feFlood flood-color="#0F1215" flood-opacity="0.9"/>
+      <feComposite in2="offset" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Main metallic surface -->
+  <rect width="400" height="300" fill="url(#dark-texture)" filter="url(#metal-texture)"/>
+  
+  <!-- Example carved pits for dark theme demonstration -->
+  <circle cx="100" cy="75" r="25" fill="url(#dark-pit-gradient)" filter="url(#dark-pit-shadow)"/>
+  <circle cx="180" cy="75" r="25" fill="url(#dark-pit-gradient)" filter="url(#dark-pit-shadow)"/>
+  <circle cx="260" cy="75" r="25" fill="url(#dark-pit-gradient)" filter="url(#dark-pit-shadow)"/>
+  <circle cx="340" cy="75" r="25" fill="url(#dark-pit-gradient)" filter="url(#dark-pit-shadow)"/>
+  <circle cx="100" cy="135" r="25" fill="url(#dark-pit-gradient)" filter="url(#dark-pit-shadow)"/>
+  <circle cx="180" cy="135" r="25" fill="url(#dark-pit-gradient)" filter="url(#dark-pit-shadow)"/>
+</svg>

@@ -1,0 +1,35 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <defs>
+    <radialGradient id="seed3-gradient" cx="0.45" cy="0.35" r="0.75">
+      <stop offset="0%" stop-color="#F4A460"/>
+      <stop offset="30%" stop-color="#DEB887"/>
+      <stop offset="70%" stop-color="#CD853F"/>
+      <stop offset="100%" stop-color="#A0522D"/>
+    </radialGradient>
+    
+    <radialGradient id="seed3-highlight" cx="0.4" cy="0.3" r="0.45">
+      <stop offset="0%" stop-color="#F5DEB3" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#F5DEB3" stop-opacity="0"/>
+    </radialGradient>
+    
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="1" dy="1.5" stdDeviation="1" flood-opacity="0.4" flood-color="#2F1B14"/>
+    </filter>
+  </defs>
+  
+  <ellipse cx="12" cy="12" rx="9.5" ry="11.5" 
+           fill="url(#seed3-gradient)" 
+           filter="url(#shadow)" 
+           transform="rotate(-5 12 12)"/>
+  
+  <ellipse cx="12" cy="12" rx="6.5" ry="8" 
+           fill="url(#seed3-highlight)" 
+           transform="rotate(-5 12 12)"/>
+  
+  <ellipse cx="12" cy="12" rx="7.5" ry="9" 
+           fill="none" 
+           stroke="#CD853F" 
+           stroke-width="0.3" 
+           opacity="0.3" 
+           transform="rotate(-5 12 12)"/>
+</svg>
