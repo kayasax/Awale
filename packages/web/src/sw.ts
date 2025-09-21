@@ -1,7 +1,9 @@
 ﻿// Basic PWA service worker for Awale
 // Caches core shell assets and updates on version change.
 
-const VERSION = (self as any).APP_VERSION || 'dev';
+// Use timestamp for cache busting in development and build-time version in production
+const BUILD_TIME = new Date().toISOString();
+const VERSION = (self as any).APP_VERSION || `dev-${BUILD_TIME}`;
 const CACHE_NAME = `awale-static-${VERSION}`;
 const CORE_ASSETS = [
   './',
@@ -21,7 +23,13 @@ self.addEventListener('install', (event: any) => {
 
 self.addEventListener('activate', (event: any) => {
   event.waitUntil(
-    caches.keys().then(keys => Promise.all(keys.filter(k => !k.startsWith(`awale-static-`)).map(k => caches.delete(k)))).then(() => (self as any).clients.claim())
+    caches.keys().then(keys => {
+      // Delete all old awale caches, not just non-matching ones
+      const deletePromises = keys
+        .filter(key => key.startsWith('awale-static-') && key !== CACHE_NAME)
+        .map(key => caches.delete(key));
+      return Promise.all(deletePromises);
+    }).then(() => (self as any).clients.claim())
   );
 });
 

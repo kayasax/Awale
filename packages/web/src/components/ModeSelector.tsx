@@ -1,7 +1,7 @@
 ﻿import React, { useState } from 'react';
 import { ProfileBar } from './ProfileBar';
 
-interface Props { onSelect: (mode: 'ai' | 'online-create' | 'online-join', joinId?: string) => void; }
+interface Props { onSelect: (mode: 'ai' | 'lobby' | 'online-create' | 'online-join', joinId?: string) => void; }
 
 export const ModeSelector: React.FC<Props> = ({ onSelect }) => {
   const [joinCode, setJoinCode] = useState('');
@@ -11,6 +11,7 @@ export const ModeSelector: React.FC<Props> = ({ onSelect }) => {
       <h2>Play Awale</h2>
       <div className="modes">
         <button className="btn primary" onClick={()=> onSelect('ai')}>Play vs AI</button>
+        <button className="btn" onClick={()=> onSelect('lobby')}>🌐 Join Lobby</button>
         <button className="btn" onClick={()=> onSelect('online-create')}>Create Online Game</button>
         <div className="join-block">
           <input
@@ -23,7 +24,7 @@ export const ModeSelector: React.FC<Props> = ({ onSelect }) => {
           <button className="btn" disabled={!joinCode} onClick={()=> onSelect('online-join', joinCode)}>Join Online Game</button>
         </div>
       </div>
-      <p className="note">Online mode is experimental (feature branch). AI mode unchanged.</p>
+      <p className="note">🌐 Lobby: Find players and chat in real-time. Online mode is experimental (feature branch).</p>
     </div>
   );
 };

@@ -3,11 +3,12 @@ import { createRoot } from 'react-dom/client';
 import { Game } from './components/Game';
 import { ModeSelector } from './components/ModeSelector';
 import { OnlineGame } from './components/OnlineGame';
+import { LobbyView } from './components/LobbyView';
 import { ProfileService } from './services/profile';
 // style.css now linked directly in index.html to avoid esbuild processing of background image path
 
 const App: React.FC = () => {
-	const [mode, setMode] = useState<'ai' | 'online-create' | 'online-join' | null>(null);
+	const [mode, setMode] = useState<'ai' | 'lobby' | 'online-create' | 'online-join' | null>(null);
 	const [gameInfo, setGameInfo] = useState<{ code?: string; role?: string } | null>(null);
 	
 	// Use ProfileService for player data
@@ -62,10 +63,23 @@ const App: React.FC = () => {
 		return <Game onExit={()=> { setMode(null); setGameInfo(null); }} />;
 	}
 	
+	if (mode === 'lobby') {
+		console.log('🌐 Rendering Lobby');
+		const serverUrl = (import.meta as any).env?.VITE_AWALE_SERVER_WS || (window as any).__AWALE_SERVER__ || 'wss://awale-server.livelybay-5ef501af.francecentral.azurecontainerapps.io/ws';
+		return <LobbyView 
+			onStartGame={(gameId, role) => { 
+				setMode('online-join'); 
+				setGameInfo({ code: gameId, role }); 
+			}}
+			onExit={() => { setMode(null); setGameInfo(null); }} 
+			serverUrl={serverUrl} 
+		/>;
+	}
+
 	console.log('🌐 Rendering OnlineGame with:', { mode, code: gameInfo?.code, playerName, playerId: getPlayerId() });
 	const serverUrl = (import.meta as any).env?.VITE_AWALE_SERVER_WS || (window as any).__AWALE_SERVER__ || 'wss://awale-server.livelybay-5ef501af.francecentral.azurecontainerapps.io/ws';
 	return <OnlineGame 
-		mode={mode} 
+		mode={mode as 'online-create' | 'online-join'} 
 		code={gameInfo?.code} 
 		playerName={playerName}
 		playerId={getPlayerId()}
