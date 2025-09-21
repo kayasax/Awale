@@ -298,9 +298,9 @@ header { margin-bottom: 1rem; }
 /* Slight darkening behind board for readability */
 .theme-wood .board-shell { -webkit-backdrop-filter:blur(1px) brightness(.96); backdrop-filter:blur(1px) brightness(.96); }
 .theme-dark .board-shell { 
-	background: linear-gradient(145deg, #2a2d32, #343841); 
-	border-color: #3f454c; 
-	box-shadow: 0 6px 24px -8px #000d, 0 0 0 1px #3a4047 inset;
+	background: linear-gradient(145deg, #4a4d52, #555964); 
+	border-color: #5f656c; 
+	box-shadow: 0 6px 24px -8px #000b, 0 0 0 1px #5a6067 inset;
 }
 
 /* Footer */
@@ -1246,8 +1246,38 @@ html.theme-dark .row.opponent .pit::before {
 	display: none !important;
 }
 
-/* Dark theme seed styling for better visibility */
+/* Dark theme seed styling with fancy SVGs */
 .theme-dark .seed {
 	background: radial-gradient(circle at 30% 30%, #f5e6c1, #d4b582) !important;
-	box-shadow: 0 0 4px rgba(0,0,0,0.8), 0 1px 2px rgba(255,255,255,0.2) !important;
+	box-shadow: 0 0 4px rgba(0,0,0,0.8), 0 1px 2px rgba(255,255,255,0.3) !important;
+}
+
+/* Dark theme fancy SVG seeds - same pattern as global but with enhanced contrast */
+.theme-dark .pit .seed:nth-child(1) { 
+	background: url('./graphics/seeds/seed-light-brown.svg') center/cover, 
+	            radial-gradient(circle at 30% 30%, #f7e8c3, #c8a274) !important; 
+}
+.theme-dark .pit .seed:nth-child(2) { 
+	background: url('./graphics/seeds/seed-medium-brown.svg') center/cover, 
+	            radial-gradient(circle at 30% 30%, #f1e3a7, #b8894f) !important; 
+}
+.theme-dark .pit .seed:nth-child(3) { 
+	background: url('./graphics/seeds/seed-dark-brown.svg') center/cover, 
+	            radial-gradient(circle at 30% 30%, #e6d39c, #a87f4e) !important; 
+}
+.theme-dark .pit .seed:nth-child(4) { 
+	background: url('./graphics/seeds/seed-speckled-tan.svg') center/cover, 
+	            radial-gradient(circle at 30% 30%, #f2e4c0, #c39759) !important; 
+}
+.theme-dark .pit .seed:nth-child(5n+1) { 
+	background: url('./graphics/seeds/seed-stone-gray.svg') center/cover, 
+	            radial-gradient(circle at 30% 30%, #e0d8c8, #b8ad98) !important; 
+}
+.theme-dark .pit .seed:nth-child(7n+2) { 
+	background: url('./graphics/seeds/seed-light-brown.svg') center/cover, 
+	            radial-gradient(circle at 30% 30%, #f7e8c3, #c8a274) !important; 
+}
+.theme-dark .pit .seed:nth-child(11n+3) { 
+	background: url('./graphics/seeds/seed-medium-brown.svg') center/cover, 
+	            radial-gradient(circle at 30% 30%, #f1e3a7, #b8894f) !important; 
 }
