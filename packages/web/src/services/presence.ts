@@ -20,6 +20,7 @@ export interface PresenceState {
 }
 
 export type PresenceListener = (state: PresenceState) => void;
+export type GameStartCallback = (gameId: string, role: 'host' | 'guest') => void;
 
 export class PresenceService {
   private static client: OnlineClient | null = null;
@@ -30,6 +31,7 @@ export class PresenceService {
     pendingInvitations: []
   };
   private static listeners: Set<PresenceListener> = new Set();
+  private static gameStartCallback: GameStartCallback | null = null;
   private static unsubscribe: (() => void) | null = null;
 
   /**
@@ -177,10 +179,26 @@ export class PresenceService {
   }
 
   /**
+   * Set callback for when a game starts
+   */
+  static setGameStartCallback(callback: GameStartCallback | null): void {
+    this.gameStartCallback = callback;
+  }
+
+  /**
    * Handle incoming WebSocket messages
    */
   private static handleMessage(msg: ServerToClient): void {
     console.log('🌐 Lobby message received:', msg);
+
+    // Handle game transition messages
+    if (msg.type === 'joined' && 'gameId' in msg && 'role' in msg) {
+      console.log('🎮 Game joined! GameId:', msg.gameId, 'Role:', msg.role);
+      if (this.gameStartCallback) {
+        this.gameStartCallback(msg.gameId, msg.role);
+      }
+      return; // Don't notify listeners for game messages
+    }
 
     if (msg.type === 'lobby') {
       if ('players' in msg) {
