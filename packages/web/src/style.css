@@ -31,7 +31,7 @@ header { margin-bottom: 1rem; }
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
-.pit.highlight { outline: 3px solid #4caf50; animation: pulse 1.8s infinite; position: relative; z-index: 2; }
+.pit.highlight { outline: 3px solid #4caf50; animation: pulse 1.8s infinite; position: relative; z-index: 10; }
 .pit.last-move { box-shadow: 0 0 0 3px #ffb300; }
 .pit.gain { animation: popGain 500ms ease; }
 .pit.loss { animation: popLoss 500ms ease; }
@@ -62,8 +62,26 @@ header { margin-bottom: 1rem; }
 .pit .delta { position:absolute; top:-10px; font-size:11px; font-weight:700; color:#66bb6a; animation: rise 900ms ease forwards; text-shadow:0 1px 2px #0008; }
 .pit.loss .delta { color:#ef5350; }
 /* Seed visuals */
-.pit .seeds-list { position:absolute; inset:6px 6px 14px 6px; display:flex; flex-wrap:wrap; align-content:flex-start; gap:4px 4px; pointer-events:none; }
-.pit .seed { width:12px; height:12px; border-radius:50%; background:radial-gradient(circle at 30% 30%, #e9d39f, #9b7740); box-shadow:0 0 3px #000a; animation: seedPop .45s ease; position: relative; z-index: 1; }
+.pit .seeds-list { position:absolute; inset:6px 6px 14px 6px; display:flex; flex-wrap:wrap; align-content:flex-start; gap:4px 4px; pointer-events:none; z-index: 1; }
+.pit .seed { 
+	width:12px; 
+	height:12px; 
+	border-radius:50%; 
+	background: radial-gradient(circle at 30% 30%, #e9d39f, #9b7740);
+	box-shadow:0 0 3px #000a; 
+	animation: seedPop .45s ease; 
+	position: relative; 
+	z-index: 1;
+}
+
+/* Enhanced seeds with SVG patterns for more realism */
+.pit .seed:nth-child(1) { background: url('./graphics/seeds/seed-light-brown.svg') center/cover, radial-gradient(circle at 30% 30%, #f3e0b5, #b1874a); }
+.pit .seed:nth-child(2) { background: url('./graphics/seeds/seed-medium-brown.svg') center/cover, radial-gradient(circle at 30% 30%, #e9d39f, #9b7740); }
+.pit .seed:nth-child(3) { background: url('./graphics/seeds/seed-dark-brown.svg') center/cover, radial-gradient(circle at 30% 30%, #d4c194, #8b6f3f); }
+.pit .seed:nth-child(4) { background: url('./graphics/seeds/seed-speckled-tan.svg') center/cover, radial-gradient(circle at 30% 30%, #f0e2b8, #a6854a); }
+.pit .seed:nth-child(5n+1) { background: url('./graphics/seeds/seed-stone-gray.svg') center/cover, radial-gradient(circle at 30% 30%, #d8d0c0, #9b9189); }
+.pit .seed:nth-child(7n+2) { background: url('./graphics/seeds/seed-light-brown.svg') center/cover, radial-gradient(circle at 30% 30%, #f3e0b5, #b1874a); }
+.pit .seed:nth-child(11n+3) { background: url('./graphics/seeds/seed-medium-brown.svg') center/cover, radial-gradient(circle at 30% 30%, #e9d39f, #9b7740); }
 .pit .seed.overflow { width:12px; height:12px; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; background:#364; color:#fff; }
 .pit .seeds-count { font-size:13px; font-weight:600; position:absolute; top:-10px; left:-6px; background:#14171bd9; padding:2px 6px; border-radius:10px; letter-spacing:.5px; box-shadow:0 2px 6px #000e; z-index:5; border:1px solid #2d3338; -webkit-backdrop-filter:blur(2px); backdrop-filter:blur(2px); }
 .pit.empty { opacity:.55; }
@@ -162,7 +180,7 @@ header { margin-bottom: 1rem; }
 .pit { background:linear-gradient(155deg,#363c42,#2c3136 58%); border-color:#77818a; box-shadow:inset 0 2px 3px #0009, 0 2px 3px #000b, 0 0 0 1px #23272b; position:relative; }
 .row.opponent .pit { background:linear-gradient(155deg,#40474e,#30363b 60%); border-color:#88939c; }
 .row.opponent .pit::before { background:radial-gradient(circle at 30% 25%, #4b545c, #31373c 70%); }
-.pit::before { content:""; position:absolute; inset:2px; border-radius:9px; background:radial-gradient(circle at 30% 25%, #40474e, #2b3034 70%); pointer-events:none; opacity:.9; }
+.pit::before { content:""; position:absolute; inset:2px; border-radius:9px; background:radial-gradient(circle at 30% 25%, #40474e, #2b3034 70%); pointer-events:none; opacity:.9; z-index: -1; }
 .pit.empty { background:linear-gradient(155deg,#3a3f44,#2d3033); }
 .pit.empty::before { opacity:.5; }
 /* Update toast */
@@ -223,12 +241,21 @@ header { margin-bottom: 1rem; }
 	opacity:.85;
 	box-shadow:inset 0 1px 2px #0006, inset 0 0 0 1px #734c28aa;
 }
+.theme-wood .pit.highlight::before {
+	inset: 4px; /* More inset to avoid covering the outline */
+	z-index: -1; /* Behind the outline */
+}
 .theme-wood .pit.empty { background:linear-gradient(155deg,#7a5430,#5c3d1f); }
 .theme-wood .pit.empty::before { opacity:.4; }
 .theme-wood .pit.last-move { box-shadow:0 0 0 3px #ffcc5a, 0 0 10px -2px #ffcc5aaa, inset 0 2px 4px #0008; }
-.theme-wood .pit.highlight { outline-color:#53c256; }
+.theme-wood .pit.highlight { 
+	outline-color:#ffcc5a; 
+	box-shadow: 0 0 0 3px #ffcc5a, inset 0 2px 4px #0008; 
+	z-index: 10;
+}
 .theme-wood .pit.captured::after, .theme-wood .pit.captured::before { filter:brightness(1.25) saturate(1.15); }
-.theme-wood .seed { background:radial-gradient(circle at 30% 30%, #f3e0b5, #b1874a); }
+.theme-wood .seed { background:radial-gradient(circle at 30% 30%, #f3e0b5, #b1874a); z-index: 1; }
+.theme-wood .seeds-list { z-index: 1; }
 .theme-wood .seeds-count { background:#362214dc; border-color:#7a5330; color:#ffe9d1; }
 .theme-wood .scores .score { background:#714b27; box-shadow:0 1px 2px #0009 inset, 0 0 0 1px #55371c; }
 .theme-wood .scores .score.you { color:#d6ffdc; }
@@ -274,7 +301,11 @@ header { margin-bottom: 1rem; }
 
 /* Slight darkening behind board for readability */
 .theme-wood .board-shell { -webkit-backdrop-filter:blur(1px) brightness(.96); backdrop-filter:blur(1px) brightness(.96); }
-.theme-dark .board-shell { -webkit-backdrop-filter:blur(2px) brightness(.95); backdrop-filter:blur(2px) brightness(.95); }
+.theme-dark .board-shell { 
+	background: linear-gradient(145deg, #4a4d52, #555964); 
+	border-color: #5f656c; 
+	box-shadow: 0 6px 24px -8px #000b, 0 0 0 1px #5a6067 inset;
+}
 
 /* Footer */
 footer.site-footer { text-align:center; font-size:.65rem; letter-spacing:.5px; opacity:.75; margin-top:1rem; padding:1rem 0 0; border-top:1px solid #ffffff12; }
@@ -1183,31 +1214,31 @@ footer.site-footer a:hover { text-decoration:underline; }
   }
 }
 
-/* 🌑 DARK THEME PIT OVERRIDES - HIGHEST PRIORITY - 2025-09-20 23:00 */
+/* 🌑 DARK THEME PIT OVERRIDES - BRIGHTER FOR SEED VISIBILITY */
 .theme-dark .pit,
 body.theme-dark .pit,
 html.theme-dark .pit {
-	background: radial-gradient(circle at 50% 50%, #2a2a2a 0%, #3a3a3a 30%, #4a4a4a 60%, #5a5a5a 100%) !important;
-	border: 2px solid #3a3a3a !important;
+	background: radial-gradient(circle at 50% 50%, #3d3d3d 0%, #4a4a4a 30%, #565656 60%, #636363 100%) !important;
+	border: 2px solid #4a4a4a !important;
 	border-radius: 50% !important;
 	box-shadow: 
-		inset 0 8px 16px rgba(0,0,0,0.8),
-		inset 0 4px 8px rgba(0,0,0,0.7),
-		inset 0 0 0 2px rgba(0,0,0,0.4),
-		0 0 2px rgba(255, 255, 255, 0.2) !important;
+		inset 0 6px 12px rgba(0,0,0,0.6),
+		inset 0 3px 6px rgba(0,0,0,0.4),
+		inset 0 0 0 1px rgba(255,255,255,0.1),
+		0 0 2px rgba(255, 255, 255, 0.3) !important;
 }
 
 .theme-dark .row.opponent .pit,
 body.theme-dark .row.opponent .pit,
 html.theme-dark .row.opponent .pit {
-	background: radial-gradient(circle at 50% 50%, #5a5a5a 0%, #6a6a6a 30%, #7a7a7a 60%, #8a8a8a 100%) !important;
-	border: 2px solid #6a6a6a !important;
+	background: radial-gradient(circle at 50% 50%, #656565 0%, #727272 30%, #7f7f7f 60%, #8c8c8c 100%) !important;
+	border: 2px solid #727272 !important;
 	border-radius: 50% !important;
 	box-shadow: 
-		inset 0 6px 12px rgba(0,0,0,0.6),
-		inset 0 3px 6px rgba(0,0,0,0.5),
-		inset 0 0 0 1px rgba(0,0,0,0.3),
-		0 0 3px rgba(255, 255, 255, 0.3) !important;
+		inset 0 4px 8px rgba(0,0,0,0.5),
+		inset 0 2px 4px rgba(0,0,0,0.3),
+		inset 0 0 0 1px rgba(255,255,255,0.15),
+		0 0 3px rgba(255, 255, 255, 0.4) !important;
 }
 
 .theme-dark .pit::before,
@@ -1217,4 +1248,40 @@ html.theme-dark .pit::before,
 body.theme-dark .row.opponent .pit::before,
 html.theme-dark .row.opponent .pit::before {
 	display: none !important;
+}
+
+/* Dark theme seed styling with fancy SVGs */
+.theme-dark .seed {
+	background: radial-gradient(circle at 30% 30%, #f5e6c1, #d4b582) !important;
+	box-shadow: 0 0 4px rgba(0,0,0,0.8), 0 1px 2px rgba(255,255,255,0.3) !important;
+}
+
+/* Dark theme fancy SVG seeds - same pattern as global but with enhanced contrast */
+.theme-dark .pit .seed:nth-child(1) { 
+	background: url('./graphics/seeds/seed-light-brown.svg') center/cover, 
+	            radial-gradient(circle at 30% 30%, #f7e8c3, #c8a274) !important; 
+}
+.theme-dark .pit .seed:nth-child(2) { 
+	background: url('./graphics/seeds/seed-medium-brown.svg') center/cover, 
+	            radial-gradient(circle at 30% 30%, #f1e3a7, #b8894f) !important; 
+}
+.theme-dark .pit .seed:nth-child(3) { 
+	background: url('./graphics/seeds/seed-dark-brown.svg') center/cover, 
+	            radial-gradient(circle at 30% 30%, #e6d39c, #a87f4e) !important; 
+}
+.theme-dark .pit .seed:nth-child(4) { 
+	background: url('./graphics/seeds/seed-speckled-tan.svg') center/cover, 
+	            radial-gradient(circle at 30% 30%, #f2e4c0, #c39759) !important; 
+}
+.theme-dark .pit .seed:nth-child(5n+1) { 
+	background: url('./graphics/seeds/seed-stone-gray.svg') center/cover, 
+	            radial-gradient(circle at 30% 30%, #e0d8c8, #b8ad98) !important; 
+}
+.theme-dark .pit .seed:nth-child(7n+2) { 
+	background: url('./graphics/seeds/seed-light-brown.svg') center/cover, 
+	            radial-gradient(circle at 30% 30%, #f7e8c3, #c8a274) !important; 
+}
+.theme-dark .pit .seed:nth-child(11n+3) { 
+	background: url('./graphics/seeds/seed-medium-brown.svg') center/cover, 
+	            radial-gradient(circle at 30% 30%, #f1e3a7, #b8894f) !important; 
 }
