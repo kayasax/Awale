@@ -175,7 +175,7 @@ export const LobbyView: React.FC<LobbyViewProps> = ({ onStartGame, onExit, serve
           </div>
           
           <div className="players-list">
-            {availablePlayers.map(player => (
+            {onlinePlayers.map(player => (
               <div key={player.id} className={`player-card ${player.status}`}>
                 <div className="player-info">
                   <div className="player-avatar">
@@ -187,6 +187,9 @@ export const LobbyView: React.FC<LobbyViewProps> = ({ onStartGame, onExit, serve
                       {player.status === 'available' ? '🟢 Available' : 
                        player.status === 'in-game' ? '🎮 In Game' : 
                        player.status === 'away' ? '🟡 Away' : '⚫ Offline'}
+                      {player.status === 'in-game' && player.gameId && (
+                        <span className="game-id"> (Game #{player.gameId.slice(-4)})</span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -197,6 +200,11 @@ export const LobbyView: React.FC<LobbyViewProps> = ({ onStartGame, onExit, serve
                   >
                     Invite
                   </button>
+                )}
+                {player.status === 'in-game' && (
+                  <div className="player-status-indicator">
+                    Playing
+                  </div>
                 )}
               </div>
             ))}
