@@ -1,13 +1,4 @@
-﻿Request URL
-https://kayasax.github.io/Awale/assets/assets/graphics/seeds/seed-medium-brown.svg
-Request Method
-GET
-Status Code
-404 Not Found
-Remote Address
-185.199.108.153:443
-Referrer Policy
-strict-origin-when-cross-originhtml { height:100%; }
+﻿html { height:100%; }
 body { margin:0; }
 
 /* Android-specific fixes for touch behavior */
@@ -216,6 +207,7 @@ header { margin-bottom: 1rem; }
 		radial-gradient(circle at 30% 28%, #7a5430, #5c3d1f 65%),
 		linear-gradient(160deg,#6d4825,#5b3b1d 70%);
 	border-color:#8d6035;
+	border-radius: 50% !important;
 	box-shadow: inset 0 3px 5px #0009, 0 2px 3px #000a, 0 0 0 1px #482c14, 0 0 8px -2px #000a;
 	color:#f8efea;
 }
@@ -224,6 +216,7 @@ header { margin-bottom: 1rem; }
 		radial-gradient(circle at 60% 25%, #845b34, #5f411f 65%),
 		linear-gradient(155deg,#724c28,#5c3d1f 70%);
 	border-color:#9a6a3b;
+	border-radius: 50% !important;
 }
 .theme-wood .pit::before {
 	background:radial-gradient(circle at 35% 30%, #8a6036, #5a3b1d 70%);
@@ -329,6 +322,19 @@ footer.site-footer a:hover { text-decoration:underline; }
 	max-width:400px;
 	line-height:1.25;
 	color:#d5d9dc;
+}
+
+.mode-selector .version-info {
+	position: absolute;
+	bottom: 10px;
+	right: 10px;
+	font-size: 0.7rem;
+	color: #9ca3af;
+	font-family: monospace;
+	background: rgba(0, 0, 0, 0.3);
+	padding: 2px 6px;
+	border-radius: 4px;
+	opacity: 0.8;
 }
 .btn.primary {
 	background:#ffb300;
