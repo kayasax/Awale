@@ -17,14 +17,14 @@ interface LobbyViewProps {
 export const LobbyView: React.FC<LobbyViewProps> = ({ onStartGame, onExit, serverUrl }) => {
   const [lobbyState, setLobbyState] = useState<PresenceState>(PresenceService.getState());
   const [renderKey, setRenderKey] = useState(0); // Force re-render key
-  
-  console.log('🌐 LobbyView rendering with state:', { 
-    isConnected: lobbyState.isConnected, 
+
+  console.log('🌐 LobbyView rendering with state:', {
+    isConnected: lobbyState.isConnected,
     playersCount: lobbyState.players.length,
     willShowSpinner: !lobbyState.isConnected,
     renderKey
   });
-  
+
   const [chatMessage, setChatMessage] = useState('');
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<LobbyPlayer | null>(null);
@@ -32,14 +32,14 @@ export const LobbyView: React.FC<LobbyViewProps> = ({ onStartGame, onExit, serve
   // Connect to lobby on component mount
   useEffect(() => {
     console.log('🌐 LobbyView mounting, connecting to:', serverUrl);
-    
+
     // Set the game start callback
     PresenceService.setGameStartCallback(onStartGame);
-    
+
     const unsubscribe = PresenceService.subscribe((state) => {
-      console.log('🌐 LobbyView received state update:', { 
-        isConnected: state.isConnected, 
-        playersCount: state.players.length 
+      console.log('🌐 LobbyView received state update:', {
+        isConnected: state.isConnected,
+        playersCount: state.players.length
       });
       setLobbyState(state);
       setRenderKey(prev => prev + 1); // Force re-render
@@ -90,7 +90,7 @@ export const LobbyView: React.FC<LobbyViewProps> = ({ onStartGame, onExit, serve
 
   const currentPlayer = ProfileService.getProfile();
   const onlinePlayers = lobbyState.players.filter(p => p.status !== 'offline');
-  const availablePlayers = onlinePlayers.filter(p => 
+  const availablePlayers = onlinePlayers.filter(p =>
     p.status === 'available' && p.id !== currentPlayer.id
   );
 
@@ -133,13 +133,13 @@ export const LobbyView: React.FC<LobbyViewProps> = ({ onStartGame, onExit, serve
                   <span>🎮 Game invite from <strong>{fromPlayer?.name || 'Unknown'}</strong></span>
                 </div>
                 <div className="invitation-actions">
-                  <button 
+                  <button
                     className="btn btn-accept"
                     onClick={() => handleInvitationResponse(invitation.id, true)}
                   >
                     Accept
                   </button>
-                  <button 
+                  <button
                     className="btn btn-decline"
                     onClick={() => handleInvitationResponse(invitation.id, false)}
                   >
@@ -156,7 +156,7 @@ export const LobbyView: React.FC<LobbyViewProps> = ({ onStartGame, onExit, serve
         {/* Players List */}
         <div className="lobby-players">
           <h2>Online Players</h2>
-          
+
           {/* Show current player status */}
           <div className="current-player-status">
             <div className="player-card current-player">
@@ -173,7 +173,7 @@ export const LobbyView: React.FC<LobbyViewProps> = ({ onStartGame, onExit, serve
               </div>
             </div>
           </div>
-          
+
           <div className="players-list">
             {onlinePlayers.map(player => (
               <div key={player.id} className={`player-card ${player.status}`}>
@@ -184,8 +184,8 @@ export const LobbyView: React.FC<LobbyViewProps> = ({ onStartGame, onExit, serve
                   <div className="player-details">
                     <div className="player-name">{player.name}</div>
                     <div className={`player-status ${player.status}`}>
-                      {player.status === 'available' ? '🟢 Available' : 
-                       player.status === 'in-game' ? '🎮 In Game' : 
+                      {player.status === 'available' ? '🟢 Available' :
+                       player.status === 'in-game' ? '🎮 In Game' :
                        player.status === 'away' ? '🟡 Away' : '⚫ Offline'}
                       {player.status === 'in-game' && player.gameId && (
                         <span className="game-id"> (Game #{player.gameId.slice(-4)})</span>
@@ -194,7 +194,7 @@ export const LobbyView: React.FC<LobbyViewProps> = ({ onStartGame, onExit, serve
                   </div>
                 </div>
                 {player.status === 'available' && (
-                  <button 
+                  <button
                     className="btn btn-invite"
                     onClick={() => handleInvitePlayer(player)}
                   >
@@ -208,7 +208,7 @@ export const LobbyView: React.FC<LobbyViewProps> = ({ onStartGame, onExit, serve
                 )}
               </div>
             ))}
-            
+
             {availablePlayers.length === 0 && (
               <div className="empty-state">
                 <p>No players available for games right now.</p>
@@ -235,7 +235,7 @@ export const LobbyView: React.FC<LobbyViewProps> = ({ onStartGame, onExit, serve
               </div>
             ))}
           </div>
-          
+
           <form className="chat-input-form" onSubmit={handleChatSubmit}>
             <input
               type="text"
