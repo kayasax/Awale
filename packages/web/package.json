@@ -1,7 +1,7 @@
 ﻿{
   "name": "@awale/web",
   "private": true,
-  "version": "0.5.8",
+  "version": "0.5.9",
   "type": "module",
   "scripts": {
     "dev": "vite",
