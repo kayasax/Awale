@@ -323,6 +323,19 @@ footer.site-footer a:hover { text-decoration:underline; }
 	line-height:1.25;
 	color:#d5d9dc;
 }
+
+.mode-selector .version-info {
+	position: absolute;
+	bottom: 10px;
+	right: 10px;
+	font-size: 0.7rem;
+	color: #9ca3af;
+	font-family: monospace;
+	background: rgba(0, 0, 0, 0.3);
+	padding: 2px 6px;
+	border-radius: 4px;
+	opacity: 0.8;
+}
 .btn.primary {
 	background:#ffb300;
 	color:#221a00;

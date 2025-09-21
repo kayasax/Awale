@@ -1,5 +1,6 @@
 ﻿import React, { useState } from 'react';
 import { ProfileBar } from './ProfileBar';
+import { APP_VERSION } from '../version';
 
 interface Props { onSelect: (mode: 'ai' | 'lobby' | 'online-create' | 'online-join', joinId?: string) => void; }
 
@@ -25,6 +26,7 @@ export const ModeSelector: React.FC<Props> = ({ onSelect }) => {
         </div>
       </div>
       <p className="note">🌐 Lobby: Find players and chat in real-time. Online mode is experimental (feature branch).</p>
+      <div className="version-info">v{APP_VERSION}</div>
     </div>
   );
 };
