@@ -24,7 +24,11 @@ fs.mkdirSync(assetsDir, { recursive: true });
     minify: true,
     target: ['es2020'],
     outfile: path.join(assetsDir, 'app.js'),
-    loader: { '.ts': 'ts', '.tsx': 'tsx' },
+    loader: { 
+      '.ts': 'ts', 
+      '.tsx': 'tsx',
+      '.css': 'css'
+    },
     logLevel: 'info',
   external: ['african-bg.jpg'],
     define: {

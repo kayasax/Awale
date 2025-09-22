@@ -1,6 +1,30 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { ambientAudioService, AudioSettings } from '../services/ambient-audio';
-import styles from './AudioControls.module.css';
+
+// CSS class names mapping (converted from CSS modules)
+const styles = {
+  audioContainer: 'audio-container',
+  audioUnavailable: 'audio-unavailable', 
+  audioControlsCompact: 'audio-controls-compact',
+  audioControlsCollapsed: 'audio-controls-collapsed',
+  audioControls: 'audio-controls',
+  audioHeader: 'audio-header',
+  audioTitle: 'audio-title', 
+  expandButton: 'expand-button',
+  controlGroup: 'control-group',
+  controlLabel: 'control-label',
+  controlLabelBlock: 'control-label-block',
+  controlRow: 'control-row',
+  testButton: 'test-button',
+  toggleButton: 'toggle-button',
+  toggleButtonEnabled: 'toggle-button-enabled',
+  toggleButtonDisabled: 'toggle-button-disabled',
+  volumeSlider: 'volume-slider',
+  compactVolumeSlider: 'compact-volume-slider',
+  boldText: 'bold-text',
+  testing: 'testing',
+  infoBox: 'info-box'
+};
 
 interface AudioControlsProps {
   className?: string;
