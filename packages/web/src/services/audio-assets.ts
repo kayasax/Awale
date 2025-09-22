@@ -1,8 +1,8 @@
 ﻿/**
  * 🎵 Audio Assets Configuration
- * 
+ *
  * Defines all available audio tracks for the Awale ambient experience
- * 
+ *
  * Note: This file lists audio assets that would be included in a production version.
  * For development, we'll use placeholder paths and gracefully handle missing files.
  */
@@ -143,13 +143,13 @@ export const AUDIO_ASSETS: AudioAssetCollection = {
 export const MUSIC_PLAYLISTS = {
   // Default peaceful background music - ONLY use existing files
   peaceful: ['african-marimba'], // Only the file that actually exists
-  
-  // More rhythmic for active gameplay  
+
+  // More rhythmic for active gameplay
   rhythmic: ['african-marimba'], // Only the file that actually exists
-  
+
   // Ultra-calm for meditation/focus
   meditative: ['african-marimba'], // Only the file that actually exists
-  
+
   // All tracks shuffled - ONLY existing files
   all: ['african-marimba'] // Only the file that actually exists
 };
@@ -160,16 +160,16 @@ export const MUSIC_PLAYLISTS = {
 export const AMBIENT_SCENES = {
   // Peaceful savanna evening
   savanna: ['african-birds', 'gentle-wind', 'savanna-evening'],
-  
-  // Tropical forest atmosphere  
+
+  // Tropical forest atmosphere
   forest: ['african-birds', 'water-stream', 'gentle-wind'],
-  
+
   // Dramatic but calming weather
   storm: ['distant-thunder', 'gentle-wind', 'water-stream'],
-  
+
   // Pure nature sounds
   nature: ['african-birds', 'water-stream'],
-  
+
   // Minimal ambient for focus
   minimal: ['gentle-wind']
 };
@@ -188,7 +188,7 @@ export function getRandomTrack(category: keyof AudioAssetCollection): string {
 export function getRandomPlaylist(): string[] {
   const playlists = Object.values(MUSIC_PLAYLISTS);
   const playlist = playlists[Math.floor(Math.random() * playlists.length)];
-  
+
   // Shuffle the selected playlist
   return [...playlist].sort(() => Math.random() - 0.5);
 }

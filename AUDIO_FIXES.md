@@ -35,7 +35,7 @@
 
 **Working Audio Files:**
 - ✅ `wood-click.wav` - Real sound file
-- ✅ `success.wav` - Real sound file  
+- ✅ `success.wav` - Real sound file
 - ✅ `african-marimba.mp3` - Real music file
 
 **Fallback System:**

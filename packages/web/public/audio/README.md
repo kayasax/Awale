@@ -14,7 +14,7 @@
 - Format: WAV/MP3
 - Quality: High-quality field recordings
 
-### 3. **Zapsplat** (https://zapsplat.com/) 
+### 3. **Zapsplat** (https://zapsplat.com/)
 - Free tier available with registration
 - Professional quality sound effects and music
 - Great for game sound effects
@@ -32,7 +32,7 @@
 3. **Ambient** - Search "african ambient" or "tribal ambient"
 
 ### Ambient Sounds (place in `/ambient/` folder):
-1. **Savanna** - Search "savanna wind", "grassland ambience"  
+1. **Savanna** - Search "savanna wind", "grassland ambience"
 2. **Forest** - Search "jungle ambience", "forest sounds"
 3. **Desert** - Search "desert wind", "sand ambience"
 4. **Wildlife** - Search "african wildlife", "bird calls"

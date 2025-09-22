@@ -68,10 +68,10 @@ export const AmbientTestControls: React.FC<AmbientTestControlsProps> = ({ classN
       margin: '1rem 0'
     }}>
       <h2 style={{ color: '#8B4513', marginTop: 0 }}>🎵 Ambient Experience Test Controls</h2>
-      
+
       {/* Current State Display */}
       <div style={{ marginBottom: '1rem', padding: '0.5rem', background: 'rgba(0,0,0,0.05)', borderRadius: '4px' }}>
-        <strong>Current State:</strong> {state.isPlaying ? 'Playing' : 'Stopped'} | 
+        <strong>Current State:</strong> {state.isPlaying ? 'Playing' : 'Stopped'} |
         Mode: {state.mode} | Scene: {state.scene}
         {state.musicTrack && <span> | Music: {state.musicTrack}</span>}
         {state.ambientTracks.length > 0 && <span> | Ambient: {state.ambientTracks.join(', ')}</span>}
@@ -81,28 +81,28 @@ export const AmbientTestControls: React.FC<AmbientTestControlsProps> = ({ classN
       <div style={{ marginBottom: '1rem' }}>
         <h3>🚀 Quick Start Presets:</h3>
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <button 
+          <button
             onClick={() => handleStart('peaceful', 'savanna')}
             disabled={loading}
             style={{ padding: '0.5rem 1rem', borderRadius: '4px', border: '1px solid #8B4513', background: '#F5DEB3', cursor: 'pointer' }}
           >
             🌅 Peaceful Savanna
           </button>
-          <button 
+          <button
             onClick={() => handleStart('meditative', 'forest')}
             disabled={loading}
             style={{ padding: '0.5rem 1rem', borderRadius: '4px', border: '1px solid #8B4513', background: '#F5DEB3', cursor: 'pointer' }}
           >
             🌲 Forest Meditation
           </button>
-          <button 
+          <button
             onClick={() => handleStart('rhythmic', 'storm')}
             disabled={loading}
             style={{ padding: '0.5rem 1rem', borderRadius: '4px', border: '1px solid #8B4513', background: '#F5DEB3', cursor: 'pointer' }}
           >
             ⛈️ Storm Rhythms
           </button>
-          <button 
+          <button
             onClick={() => handleStart('dynamic', 'nature')}
             disabled={loading}
             style={{ padding: '0.5rem 1rem', borderRadius: '4px', border: '1px solid #8B4513', background: '#F5DEB3', cursor: 'pointer' }}
@@ -172,7 +172,7 @@ export const AmbientTestControls: React.FC<AmbientTestControlsProps> = ({ classN
         >
           {loading ? '⏳ Starting...' : '▶️ Start Experience'}
         </button>
-        
+
         <button
           onClick={handleStop}
           disabled={loading || !state.isPlaying}
@@ -221,7 +221,7 @@ export const AmbientTestControls: React.FC<AmbientTestControlsProps> = ({ classN
         color: '#1976D2',
         border: '1px solid rgba(33, 150, 243, 0.3)'
       }}>
-        <strong>🛠️ Development Note:</strong> This is using placeholder audio (silence) since actual audio files aren't included in the repository. 
+        <strong>🛠️ Development Note:</strong> This is using placeholder audio (silence) since actual audio files aren't included in the repository.
         In production, you would add actual Afrobeat music tracks, nature sounds, and game effect sounds to the <code>/public/audio/</code> directories.
         The system is fully functional and will automatically switch to real audio files when they're available.
       </div>

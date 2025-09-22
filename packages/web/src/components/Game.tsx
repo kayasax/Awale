@@ -34,7 +34,7 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
     return {
       state: initialState,
       thinking: !isPlayerStart, // If AI starts, set thinking to true
-      message: isPlayerStart 
+      message: isPlayerStart
         ? '🎲 You have been randomly selected to start! Choose a pit (0-5)'
         : '🎲 AI has been randomly selected to start first!',
       prevPits: undefined,
@@ -63,10 +63,10 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
     const profile = ProfileService.getProfile();
     setTheme(profile.preferences.theme);
     setMuted(!profile.preferences.soundEnabled);
-    
+
     // Initialize ambient experience
     ambientExperience.initialize();
-    
+
     // Start ambient experience if enabled
     if (profile.preferences.soundEnabled) {
       ambientExperience.start('peaceful', 'savanna');
@@ -81,7 +81,7 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
   // Enhanced audio function using ambient experience
   function playGameSound(kind: 'drop'|'capture'|'end'|'start'|'move'|'invalid') {
     if (muted) return;
-    
+
     switch (kind) {
       case 'drop':
         ambientExperience.onSeedDrop();
@@ -115,7 +115,7 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
     setView({
       state: initialState,
       thinking: !isPlayerStart, // If AI starts, set thinking to true
-      message: isPlayerStart 
+      message: isPlayerStart
         ? '🎲 You have been randomly selected to start! Choose a pit (0-5)'
         : '🎲 AI has been randomly selected to start first!',
       prevPits: undefined,
@@ -124,7 +124,7 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
     });
     setAnimating(false); setDisplayPits(null); setHandPos(null);
     setGameResultRecorded(false); // Reset for new game
-    
+
     // Play game start sound
     playGameSound('start');
   }
@@ -288,12 +288,12 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
   // Game result tracking - record statistics when game ends
   const [gameStartTime] = useState(Date.now());
   const [gameResultRecorded, setGameResultRecorded] = useState(false);
-  
+
   useEffect(() => {
     if (view.state.ended && !gameResultRecorded) {
       const gameEndTime = Date.now();
       const gameDuration = (gameEndTime - gameStartTime) / 1000; // Convert to seconds
-      
+
       const gameResult = {
         won: view.state.winner === 'A',
         seedsCaptured: view.state.captured.A,
@@ -301,14 +301,14 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
         opponent: 'AI',
         timestamp: gameEndTime
       };
-      
+
       try {
         ProfileService.recordGameResult(gameResult);
         console.log('🎮 Game result recorded:', gameResult);
       } catch (error) {
         console.error('Failed to record game result:', error);
       }
-      
+
       setGameResultRecorded(true);
     }
   }, [view.state.ended, view.state.winner, view.state.captured.A, gameStartTime, gameResultRecorded]);
@@ -326,9 +326,9 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
         <button className="btn" onClick={restart}>New Game</button>
         <button className="btn" onClick={() => alert(rulesText)}>Rules</button>
         <button className="btn mute" onClick={()=> setMuted((m:boolean)=> !m)} data-state={muted? 'off':'on'} aria-label={muted? 'Sound is muted, click to unmute':'Sound is on, click to mute'} title="Toggle sound">{muted? 'Unmute' : 'Mute'}</button>
-        <button 
-          className="btn" 
-          onClick={()=> setTheme(t=> t==='dark'?'wood':'dark')} 
+        <button
+          className="btn"
+          onClick={()=> setTheme(t=> t==='dark'?'wood':'dark')}
           title="Toggle wood theme"
         >
           {theme==='wood' ? 'Dark Mode' : 'Wood Theme'}

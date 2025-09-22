@@ -1,6 +1,6 @@
 ﻿/**
  * 🎵 Ambient Experience Manager
- * 
+ *
  * Orchestrates the complete immersive ambient experience including:
  * - Background music rotation
  * - Layered ambient sounds
@@ -10,14 +10,14 @@
 
 import { ambientAudioService, AudioSettings } from './ambient-audio';
 import { AudioDiscovery, DiscoveredAudioFile } from './audio-discovery';
-import { 
-  AUDIO_ASSETS, 
-  MUSIC_PLAYLISTS, 
-  AMBIENT_SCENES, 
-  getRandomPlaylist, 
+import {
+  AUDIO_ASSETS,
+  MUSIC_PLAYLISTS,
+  AMBIENT_SCENES,
+  getRandomPlaylist,
   getRandomAmbientScene,
   getFallbackAudioConfig,
-  checkAudioFileExists 
+  checkAudioFileExists
 } from './audio-assets';
 
 export type AmbientMode = 'peaceful' | 'rhythmic' | 'meditative' | 'dynamic';
@@ -65,7 +65,7 @@ export class AmbientExperienceManager {
     try {
       // Check if audio files exist, fallback to generated sounds if needed
       const hasAudioFiles = await this.checkAudioAvailability();
-      
+
       if (!hasAudioFiles) {
         // Could generate simple tones using Web Audio API here if needed
       }
@@ -81,7 +81,7 @@ export class AmbientExperienceManager {
    */
   async start(mode: AmbientMode = 'peaceful', scene: AmbientScene = 'savanna'): Promise<void> {
     await this.initialize();
-    
+
     this.currentState.mode = mode;
     this.currentState.scene = scene;
     this.currentState.isPlaying = true;
@@ -99,12 +99,12 @@ export class AmbientExperienceManager {
    */
   stop(): void {
     this.currentState.isPlaying = false;
-    
+
     // Stop all playing tracks
     if (this.currentState.musicTrack) {
       ambientAudioService.stopTrack(`music-${this.currentState.musicTrack}`, 2.0);
     }
-    
+
     for (const track of this.currentState.ambientTracks) {
       ambientAudioService.stopTrack(`ambient-${track}`, 3.0);
     }
@@ -124,13 +124,13 @@ export class AmbientExperienceManager {
    */
   async changeMode(mode: AmbientMode): Promise<void> {
     if (this.currentState.mode === mode) return;
-    
+
     this.currentState.mode = mode;
-    
+
     if (this.currentState.isPlaying) {
       await this.startBackgroundMusic(mode);
     }
-    
+
     this.saveState();
   }
 
@@ -139,13 +139,13 @@ export class AmbientExperienceManager {
    */
   async changeScene(scene: AmbientScene): Promise<void> {
     if (this.currentState.scene === scene) return;
-    
+
     this.currentState.scene = scene;
-    
+
     if (this.currentState.isPlaying) {
       await this.startAmbientSounds(scene);
     }
-    
+
     this.saveState();
   }
 
@@ -161,7 +161,7 @@ export class AmbientExperienceManager {
     try {
       // Use dynamic discovery to find actual music files
       const musicFile = await AudioDiscovery.getRandomFile('music');
-      
+
       if (!musicFile) return;
 
       // Create a dynamic config for the discovered file
@@ -174,7 +174,7 @@ export class AmbientExperienceManager {
       };
 
       await ambientAudioService.playTrack(`music-${musicFile.id}`, trackConfig, 'music');
-      
+
       this.currentState.musicTrack = musicFile.id;
     } catch (error) {
       console.error(`Failed to play music:`, error);
@@ -193,7 +193,7 @@ export class AmbientExperienceManager {
     try {
       // Use dynamic discovery to find actual ambient files
       const ambientFile = await AudioDiscovery.getRandomFile('ambient');
-      
+
       if (!ambientFile) return;
 
       // Play the ambient sound
@@ -222,7 +222,7 @@ export class AmbientExperienceManager {
 
     // Rotate music every 5-8 minutes for variety
     const rotationInterval = (5 + Math.random() * 3) * 60 * 1000;
-    
+
     this.musicRotationTimer = window.setInterval(() => {
       if (this.currentState.isPlaying && this.currentState.musicTrack) {
         this.startBackgroundMusic(this.currentState.mode);
@@ -246,11 +246,11 @@ export class AmbientExperienceManager {
       };
 
       const actualEffectId = effectMap[effectId] || 'wood-click';
-      
+
       // Find the effect file using dynamic discovery
       const availableEffects = await AudioDiscovery.discoverAvailableAudioFiles();
       const effectFile = availableEffects.effects.find(f => f.id === actualEffectId);
-      
+
       if (!effectFile) return;
 
       const trackConfig = {
@@ -300,10 +300,10 @@ export class AmbientExperienceManager {
   async reset(): Promise<void> {
     // Stop everything
     this.stop();
-    
+
     // Clear audio service caches
     ambientAudioService.clearCaches();
-    
+
     // Reinitialize
     await this.initialize();
   }

@@ -1,6 +1,6 @@
 ﻿/**
  * 🎵 Dynamic Audio File Discovery
- * 
+ *
  * Automatically discovers what audio files are actually available
  * instead of hardcoding file names that might not exist
  */
@@ -27,7 +27,7 @@ export class AudioDiscovery {
     effects: DiscoveredAudioFile[];
   }> {
     const now = Date.now();
-    
+
     // Use cache if recent
     if (now - this.lastScan < this.CACHE_DURATION && this.cache.size > 0) {
       return {
@@ -63,7 +63,7 @@ export class AudioDiscovery {
    * Scan a directory for audio files by actually testing if they load
    */
   private static async scanDirectory(
-    directory: string, 
+    directory: string,
     category: 'music' | 'ambient' | 'effects'
   ): Promise<DiscoveredAudioFile[]> {
     // Try common audio file extensions to find what's actually available
@@ -86,17 +86,17 @@ export class AudioDiscovery {
 
     for (const filename of filesToCheck) {
       const url = `${directory}${filename}`;
-      
+
       try {
         // Try to actually fetch headers to verify the file exists and is accessible
-        const response = await fetch(url, { 
+        const response = await fetch(url, {
           method: 'HEAD'
         });
-        
+
         if (response.ok) {
           const id = this.filenameToId(filename);
           const displayName = this.filenameToDisplayName(filename);
-          
+
           discovered.push({
             id,
             filename,
@@ -143,7 +143,7 @@ export class AudioDiscovery {
   static async getRandomFile(category: 'music' | 'ambient' | 'effects'): Promise<DiscoveredAudioFile | null> {
     const files = await this.discoverAvailableAudioFiles();
     const categoryFiles = files[category];
-    
+
     if (categoryFiles.length === 0) {
       console.warn(`🔇 No ${category} files found`);
       return null;

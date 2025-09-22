@@ -21,7 +21,7 @@ export const AudioControls: React.FC<AudioControlsProps> = ({ className = '', co
     const newSettings = { ...settings, [key]: value };
     setSettings(newSettings);
     ambientAudioService.updateSettings({ [key]: value });
-    
+
     // Handle re-enabling audio categories - restart if ambient experience is active
     if (value === true) {
       handleAudioReEnable(key);
@@ -31,7 +31,7 @@ export const AudioControls: React.FC<AudioControlsProps> = ({ className = '', co
   const handleAudioReEnable = async (key: keyof AudioSettings) => {
     try {
       const { ambientExperience } = await import('../services/ambient-experience');
-      
+
       if (key === 'musicEnabled') {
         // Restart background music if it was playing
         await ambientExperience.restartBackgroundMusic();
@@ -55,39 +55,39 @@ export const AudioControls: React.FC<AudioControlsProps> = ({ className = '', co
       // First, make sure the ambient experience is initialized and started
       const { ambientExperience } = await import('../services/ambient-experience');
       await ambientExperience.initialize();
-      
+
       // Force resume audio context
       await (ambientAudioService as any).ensureAudioContextResumed();
-      
+
       // Try to start the ambient experience to get background music going
       if (!ambientExperience.getState().isPlaying) {
         console.log('🎵 Starting ambient experience...');
         await ambientExperience.start('peaceful', 'savanna');
       }
-      
+
       // Also test direct audio playback
       const audioContext = (ambientAudioService as any).audioContext;
       const masterGain = (ambientAudioService as any).masterGainNode;
-      
+
       console.log('🎵 Testing audio - Context state:', audioContext?.state);
       console.log('🎵 Testing audio - Master volume:', masterGain?.gain?.value);
       console.log('🎵 Testing audio - Settings enabled:', settings.enabled);
-      
+
       if (audioContext && masterGain && audioContext.state === 'running') {
         // Try a quick test tone to verify Web Audio API is working
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
-        
+
         oscillator.connect(gainNode);
         gainNode.connect(masterGain);
-        
+
         oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // A4 note
         gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-        
+
         oscillator.start(audioContext.currentTime);
         oscillator.stop(audioContext.currentTime + 0.5);
-        
+
         console.log('🎵 SUCCESS: Audio context working and test tone played!');
       } else {
         console.warn('🔇 Audio context not available or not running. State:', audioContext?.state);
@@ -95,7 +95,7 @@ export const AudioControls: React.FC<AudioControlsProps> = ({ className = '', co
     } catch (error) {
       console.error('Failed to play test audio:', error);
     }
-    
+
     setTimeout(() => setIsTestingAudio(false), 1000);
   };
 
@@ -124,7 +124,7 @@ export const AudioControls: React.FC<AudioControlsProps> = ({ className = '', co
         >
           {settings.enabled ? '🔊' : '🔇'} Audio
         </button>
-        
+
         {settings.enabled && (
           <input
             type="range"
@@ -144,7 +144,7 @@ export const AudioControls: React.FC<AudioControlsProps> = ({ className = '', co
   return (
     <div className={styles.audioContainer}>
       {!isExpanded ? (
-        <div 
+        <div
           className={`${styles.audioControlsCollapsed} ${className}`}
           onClick={toggleExpanded}
         >
@@ -159,7 +159,7 @@ export const AudioControls: React.FC<AudioControlsProps> = ({ className = '', co
             <span className={styles.audioTitle}>🎵 Audio Settings</span>
             <span className={styles.expandButton}>▼</span>
           </div>
-          
+
           {/* Master Enable/Disable */}
           <div className={styles.controlGroup}>
             <label className={styles.controlLabel}>

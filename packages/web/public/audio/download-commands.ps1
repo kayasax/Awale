@@ -18,5 +18,5 @@ curl -L -o "success.mp3" "https://www.soundjay.com/misc/sounds/bell-ringing-05.w
 
 # Recommended workflow:
 # 1. Start with the placeholder files below
-# 2. Test the system functionality  
+# 2. Test the system functionality
 # 3. Replace with better audio later

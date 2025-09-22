@@ -1,6 +1,6 @@
 ﻿/**
  * 🎵 Ambient Audio Service - Web Audio API Integration
- * 
+ *
  * Provides immersive ambient experience with:
  * - Background music (Afrobeat/traditional)
  * - Nature ambient sounds (jungle, birds, wind)
@@ -39,13 +39,13 @@ export class AmbientAudioService {
   private musicGainNode: GainNode | null = null;
   private ambientGainNode: GainNode | null = null;
   private effectsGainNode: GainNode | null = null;
-  
+
   private loadedTracks = new Map<string, AudioBuffer>();
   private playingSources = new Map<string, AudioBufferSourceNode>();
   private trackTypes = new Map<string, AudioTrack>(); // Track what type each playing source is
   private failedTracks = new Set<string>(); // Track failed loads to avoid retry spam
   private lastEffectTime = new Map<string, number>(); // Rate limiting for effects
-  
+
   private settings: AudioSettings = {
     masterVolume: 0.7,
     musicVolume: 0.6,
@@ -76,9 +76,9 @@ export class AmbientAudioService {
     try {
       // Clear any stale caches from previous sessions
       this.clearCaches();
-      
+
       this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      
+
       // Create gain nodes for volume control
       this.masterGainNode = this.audioContext.createGain();
       this.musicGainNode = this.audioContext.createGain();
@@ -93,9 +93,9 @@ export class AmbientAudioService {
 
       // Set initial volumes
       this.updateVolumes();
-      
+
       this.initialized = true;
-      
+
       // Only log initialization occasionally to keep console clean
       if (Math.random() < 0.1) { // Reduced from 0.2 to 0.1 for less noise
         console.log('🎵 Ambient Audio System initialized');
@@ -112,7 +112,7 @@ export class AmbientAudioService {
     const handleUserInteraction = () => {
       this.userInteracted = true;
       this.initializeAudioContext();
-      
+
       // Remove listeners after first interaction
       document.removeEventListener('click', handleUserInteraction);
       document.removeEventListener('keydown', handleUserInteraction);
@@ -149,10 +149,10 @@ export class AmbientAudioService {
         this.failedTracks.add(url);
         return null;
       }
-      
+
       const arrayBuffer = await response.arrayBuffer();
       const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
-      
+
       this.loadedTracks.set(url, audioBuffer);
       return audioBuffer;
     } catch (error) {
@@ -167,14 +167,14 @@ export class AmbientAudioService {
    */
   async playTrack(id: string, config: AudioTrackConfig, trackType: AudioTrack): Promise<void> {
     if (!this.settings.enabled) return;
-    
+
     // Check if specific track type is enabled
     const trackEnabled = {
       music: this.settings.musicEnabled,
       ambient: this.settings.ambientEnabled,
       effects: this.settings.effectsEnabled
     }[trackType];
-    
+
     if (!trackEnabled) return;
 
     // Rate limiting for effects to prevent spam
@@ -196,17 +196,17 @@ export class AmbientAudioService {
       this.stopTrack(id);
 
       const audioBuffer = await this.loadAudioFile(config.url);
-      
+
       // If audio file failed to load, just return (no fallback tones)
       if (!audioBuffer) return;
 
       // Create and configure audio nodes
       const source = this.audioContext!.createBufferSource();
       const gainNode = this.audioContext!.createGain();
-      
+
       source.buffer = audioBuffer;
       source.loop = config.loop || false;
-      
+
       // Connect to appropriate gain node
       const targetGain = {
         music: this.musicGainNode!,
@@ -216,7 +216,7 @@ export class AmbientAudioService {
 
       source.connect(gainNode);
       gainNode.connect(targetGain);
-      
+
       // Set initial volume and fading
       const initialVolume = config.volume || 0.5;
       const currentTime = this.audioContext!.currentTime;
@@ -230,7 +230,7 @@ export class AmbientAudioService {
 
       // Start playback
       source.start(currentTime);
-      
+
       // Store the source AND its type for later control
       this.playingSources.set(id, source);
       this.trackTypes.set(id, trackType);
@@ -296,7 +296,7 @@ export class AmbientAudioService {
     if (!this.audioContext) return;
 
     const currentTime = this.audioContext.currentTime;
-    
+
     if (this.masterGainNode) {
       this.masterGainNode.gain.setValueAtTime(this.settings.masterVolume, currentTime);
     }
@@ -316,16 +316,16 @@ export class AmbientAudioService {
    */
   updateSettings(newSettings: Partial<AudioSettings>): void {
     this.settings = { ...this.settings, ...newSettings };
-    
+
     // EMERGENCY STOP: If disabled, stop everything immediately
     if (newSettings.enabled === false) {
       this.stopAllAudio();
       return;
     }
-    
+
     this.updateVolumes();
     this.saveSettings();
-    
+
     // Stop tracks if their categories are disabled
     if (newSettings.musicEnabled === false) {
       this.stopAllTracksOfType('music');
@@ -355,7 +355,7 @@ export class AmbientAudioService {
         this.playingSources.clear();
         this.trackTypes.clear(); // Clear track type tracking
       }
-      
+
       // Mute all gain nodes immediately
       const currentTime = this.audioContext?.currentTime || 0;
       if (this.masterGainNode) {
@@ -370,7 +370,7 @@ export class AmbientAudioService {
       if (this.effectsGainNode) {
         this.effectsGainNode.gain.setValueAtTime(0, currentTime);
       }
-      
+
     } catch (error) {
       console.error('Error stopping audio:', error);
     }
@@ -384,19 +384,19 @@ export class AmbientAudioService {
    */
   private stopAllTracksOfType(trackType: AudioTrack): void {
     const tracksToStop: string[] = [];
-    
+
     // Find all tracks of this type
     this.trackTypes.forEach((type, id) => {
       if (type === trackType) {
         tracksToStop.push(id);
       }
     });
-    
+
     // Stop each track
     tracksToStop.forEach(id => {
       this.stopTrack(id);
     });
-    
+
     if (tracksToStop.length > 0) {
       console.log(`🔇 Stopped ${tracksToStop.length} ${trackType} track(s)`);
     }
@@ -441,12 +441,12 @@ export class AmbientAudioService {
   private async playFallbackTone(id: string, config: AudioTrackConfig, trackType: AudioTrack = 'effects'): Promise<void> {
     // DISABLED: No more fallback tones - just fail silently for a cleaner experience
     // If audio files don't exist, the game should work fine without them
-    
+
     // Only log occasionally to avoid console spam (5% chance)
     if (Math.random() < 0.05) {
       console.log(`🔇 Audio file missing (silent): ${id}`);
     }
-    
+
     return; // Exit immediately - no fallback audio
   }
 
@@ -478,7 +478,7 @@ export class AmbientAudioService {
     if (this.audioContext && this.audioContext.state !== 'closed') {
       this.audioContext.close();
     }
-    
+
     this.initialized = false;
     console.log('🎵 Ambient Audio System disposed');
   }
@@ -490,7 +490,7 @@ export class AmbientAudioService {
     if (!this.audioContext) {
       await this.initializeAudioContext();
     }
-    
+
     if (this.audioContext && this.audioContext.state === 'suspended') {
       try {
         await this.audioContext.resume();
@@ -501,7 +501,7 @@ export class AmbientAudioService {
         return false;
       }
     }
-    
+
     return this.audioContext?.state === 'running';
   }
 
