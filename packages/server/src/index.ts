@@ -44,10 +44,21 @@ const activeInvitations = new Map<string, { from: LobbyPlayer; to: LobbyPlayer; 
 
 // Lobby message broadcast
 function broadcastToLobby(message: ServerToClient) {
-	for (const connection of lobbyConnections.values()) {
+	const closedConnections: string[] = [];
+	
+	for (const [playerId, connection] of lobbyConnections) {
 		if (connection.ws.readyState === WebSocket.OPEN) {
 			send(connection.ws, message);
+		} else {
+			// Mark for removal if WebSocket is closed
+			closedConnections.push(playerId);
 		}
+	}
+	
+	// Clean up closed connections
+	for (const playerId of closedConnections) {
+		console.log('🌐 Cleaning up closed connection for player:', lobbyConnections.get(playerId)?.player.name);
+		lobbyConnections.delete(playerId);
 	}
 }
 
@@ -207,11 +218,25 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 							joinedAt: Date.now()
 						};
 						
-						// Remove any existing connection for this player
+						// Remove any existing connection for this player ID
 						const existingConnection = lobbyConnections.get(player.id);
 						if (existingConnection) {
 							console.log('🌐 Removing existing connection for player:', player.name);
+							// Close the old WebSocket connection
+							if (existingConnection.ws.readyState === WebSocket.OPEN) {
+								existingConnection.ws.close();
+							}
+							lobbyConnections.delete(player.id);
 							broadcastToLobby({ type: 'lobby', action: 'player-left', playerId: player.id });
+						}
+						
+						// Also check for any connections with the same WebSocket (shouldn't happen, but safety)
+						for (const [pid, connection] of lobbyConnections) {
+							if (connection.ws === ws) {
+								console.log('🌐 Removing connection with same WebSocket for player:', connection.player.name);
+								lobbyConnections.delete(pid);
+								broadcastToLobby({ type: 'lobby', action: 'player-left', playerId: pid });
+							}
 						}
 						
 						// Add new connection
@@ -843,6 +868,8 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 	});
 
 	ws.on('close', () => {
+		console.log('🌐 WebSocket connection closed');
+		
 		// Mark disconnected; do not delete game yet (allows reconnect logic later)
 		for (const g of games.values()) {
 			if (g.host.ws === ws) { 
@@ -875,19 +902,27 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 			}
 		}
 		
-		// Handle lobby disconnections
+		// Handle lobby disconnections - find by WebSocket connection
+		let removedPlayerId: string | null = null;
 		for (const [playerId, connection] of lobbyConnections) {
 			if (connection.ws === ws) {
+				console.log('🌐 Removing lobby connection for player:', connection.player.name);
 				lobbyConnections.delete(playerId);
+				removedPlayerId = playerId;
 				broadcastToLobby({ type: 'lobby', action: 'player-left', playerId });
 				
-				// Clean up any invitations from this player
-				for (const [inviteId, invite] of activeInvitations) {
-					if (invite.from.id === playerId || invite.to.id === playerId) {
-						activeInvitations.delete(inviteId);
-					}
-				}
+				// Track lobby disconnection
+				analytics.trackLobbyConnection(connection.player.id, connection.player.name, 'disconnect');
 				break;
+			}
+		}
+		
+		// Clean up any invitations from this player
+		if (removedPlayerId) {
+			for (const [inviteId, invite] of activeInvitations) {
+				if (invite.from.id === removedPlayerId || invite.to.id === removedPlayerId) {
+					activeInvitations.delete(inviteId);
+				}
 			}
 		}
 	});
