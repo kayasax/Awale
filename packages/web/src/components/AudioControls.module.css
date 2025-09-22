@@ -1,0 +1,237 @@
+﻿/* 🎵 Audio Controls Styling */
+
+/* Container for proper positioning */
+.audioContainer {
+  position: relative;
+  display: inline-block;
+}
+
+.audioControls {
+  background: rgba(45, 47, 51, 0.95);
+  border: 1px solid rgba(61, 65, 71, 0.9);
+  border-radius: 8px;
+  padding: 1rem;
+  max-width: 400px;
+  color: #eee;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 0.5rem;
+  z-index: 1000;
+}
+
+/* Wood theme for expanded panel */
+:global(.theme-wood) .audioControls {
+  background: rgba(139, 69, 19, 0.95);
+  border: 1px solid rgba(139, 69, 19, 0.9);
+  color: #f7eee7;
+}
+
+/* Collapsed button state - matches main nav buttons */
+.audioControlsCollapsed {
+  background: #2d2f33;
+  border: 1px solid #3d4147;
+  border-radius: 8px;
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  transition: background 0.25s, transform 0.15s;
+  display: inline-block;
+  color: #eee;
+}
+
+.audioControlsCollapsed:hover {
+  background: #3a3d42;
+}
+
+.audioControlsCollapsed:active {
+  transform: translateY(2px);
+}
+
+/* Wood theme for collapsed button */
+:global(.theme-wood) .audioControlsCollapsed {
+  background: #6b4624;
+  border-color: #7a522d;
+  color: #f7eee7;
+}
+
+:global(.theme-wood) .audioControlsCollapsed:hover {
+  background: #7a532e;
+}
+
+.audioControlsCompact {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.audioUnavailable {
+  color: #666;
+  font-style: italic;
+}
+
+.audioHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+/* Header styling for expanded state only */
+.audioControls .audioHeader {
+  padding: 0.25rem;
+}
+
+.audioControls .audioHeader:hover {
+  background: rgba(139, 69, 19, 0.6);
+}
+
+/* Updated title styling for both states */
+.audioTitle {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+/* Expanded state title */
+.audioControls .audioTitle {
+  font-size: 1.1em;
+  font-weight: bold;
+  color: #eee;
+}
+
+/* Wood theme expanded title */
+:global(.theme-wood) .audioControls .audioTitle {
+  color: #f7eee7;
+}
+
+/* Collapsed state uses button text color */
+.audioControlsCollapsed .audioTitle {
+  color: inherit;
+}
+
+.expandButton {
+  background: none;
+  border: none;
+  font-size: 0.8em;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 2px;
+  transition: background-color 0.2s;
+}
+
+/* Expanded state button colors */
+.audioControls .expandButton {
+  color: #eee;
+}
+
+:global(.theme-wood) .audioControls .expandButton {
+  color: #f7eee7;
+}
+
+/* Collapsed state uses button text color */
+.audioControlsCollapsed .expandButton {
+  color: inherit;
+}
+
+.expandButton:hover {
+  background: rgba(255, 248, 220, 0.2);
+}
+
+.controlGroup {
+  margin-bottom: 1rem;
+}
+
+.controlLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  margin-bottom: 0.5rem;
+}
+
+.controlLabelBlock {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+.boldText {
+  font-weight: bold;
+}
+
+.volumeSlider {
+  width: 100%;
+}
+
+.compactVolumeSlider {
+  width: 100px;
+}
+
+.subControl {
+  margin-left: 1.5rem;
+}
+
+.subLabel {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.9em;
+}
+
+.toggleButton {
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+.toggleButtonEnabled {
+  background: #4CAF50;
+  color: white;
+}
+
+.toggleButtonDisabled {
+  background: #f44336;
+  color: white;
+}
+
+.infoBox {
+  margin-top: 1rem;
+  padding: 0.5rem;
+  background: rgba(76, 175, 80, 0.1);
+  border-radius: 4px;
+  font-size: 0.85em;
+  color: #2E7D32;
+}
+
+/* Wood theme info box */
+:global(.theme-wood) .infoBox {
+  background: rgba(76, 175, 80, 0.2);
+  color: #81C784;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .audioControls {
+    max-width: 100%;
+    padding: 0.75rem;
+  }
+
+  .audioControlsCompact {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .compactVolumeSlider {
+    width: 100%;
+  }
+}

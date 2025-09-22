@@ -3,6 +3,8 @@ import { APP_VERSION } from '../version';
 import { createInitialState, applyMove, getLegalMoves, formatBoard } from '../../../core/src/engine';
 import { greedyStrategy } from '../../../core/src/ai/greedy';
 import { ProfileService } from '../services/profile';
+import { ambientExperience } from '../services/ambient-experience';
+import { AudioControls } from './AudioControls';
 import type { GameState } from '../../../shared/src/types';
 
 interface ViewState {
@@ -32,7 +34,7 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
     return {
       state: initialState,
       thinking: !isPlayerStart, // If AI starts, set thinking to true
-      message: isPlayerStart 
+      message: isPlayerStart
         ? '🎲 You have been randomly selected to start! Choose a pit (0-5)'
         : '🎲 AI has been randomly selected to start first!',
       prevPits: undefined,
@@ -56,58 +58,50 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
   const [muted, setMuted] = useState(false);
   const [theme, setTheme] = useState<'dark'|'wood'>(playerProfile.preferences.theme);
 
-  // Load user preferences on mount
+  // Load user preferences on mount and initialize ambient experience
   useEffect(() => {
     const profile = ProfileService.getProfile();
     setTheme(profile.preferences.theme);
     setMuted(!profile.preferences.soundEnabled);
-  }, []);
 
-  // Audio (top-level once)
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const audioReadyRef = useRef(false);
-  useEffect(() => {
-    if (audioReadyRef.current) return;
-    if (typeof window === 'undefined') return;
-    const AC: any = (window as any).AudioContext || (window as any).webkitAudioContext;
-    if (!AC) return;
-    audioCtxRef.current = new AC();
-    audioReadyRef.current = true;
-    // Try to resume on first user gesture so first move produces sound
-    const unlock = () => {
-      if (!audioCtxRef.current) return;
-      if (audioCtxRef.current.state === 'suspended') {
-        audioCtxRef.current.resume().catch(()=>{});
-      }
-      window.removeEventListener('pointerdown', unlock);
-      window.removeEventListener('keydown', unlock);
+    // Initialize ambient experience
+    ambientExperience.initialize();
+
+    // Start ambient experience if enabled
+    if (profile.preferences.soundEnabled) {
+      ambientExperience.start('peaceful', 'savanna');
+    }
+
+    return () => {
+      // Cleanup ambient experience when component unmounts
+      ambientExperience.stop();
     };
-    window.addEventListener('pointerdown', unlock, { once: true });
-    window.addEventListener('keydown', unlock, { once: true });
   }, []);
 
-  function playTone(kind: 'drop'|'capture'|'end') {
+  // Enhanced audio function using ambient experience
+  function playGameSound(kind: 'drop'|'capture'|'end'|'start'|'move'|'invalid') {
     if (muted) return;
-    const ctx = audioCtxRef.current; if (!ctx) return;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    const now = ctx.currentTime;
-    let freq = 480;
-    let dur = 0.18;
-    let type: OscillatorType = 'sine';
-    if (kind==='capture'){ freq=520; dur=0.35; type='sine'; }
-    else if (kind==='end'){ freq=340; dur=0.9; type='sine'; }
-    else { freq = 470 + Math.random()*25; dur=0.14; type='sine'; }
-    osc.type = type;
-    osc.frequency.value = freq;
-    // Gentle attack & release
-    const peak = kind==='end' ? 0.12 : kind==='capture' ? 0.09 : 0.06;
-    gain.gain.setValueAtTime(0.00001, now);
-    gain.gain.linearRampToValueAtTime(peak, now + 0.04);
-    gain.gain.exponentialRampToValueAtTime(0.00001, now + dur);
-    osc.connect(gain).connect(ctx.destination);
-    osc.start(now);
-    osc.stop(now + dur + 0.02);
+
+    switch (kind) {
+      case 'drop':
+        ambientExperience.onSeedDrop();
+        break;
+      case 'capture':
+        ambientExperience.onSeedCapture();
+        break;
+      case 'end':
+        ambientExperience.onGameEnd(view.state.winner === 'A');
+        break;
+      case 'start':
+        ambientExperience.onGameStart();
+        break;
+      case 'move':
+        ambientExperience.onValidMove();
+        break;
+      case 'invalid':
+        ambientExperience.onInvalidMove();
+        break;
+    }
   }
 
   const announceRef = useRef<HTMLDivElement | null>(null);
@@ -121,7 +115,7 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
     setView({
       state: initialState,
       thinking: !isPlayerStart, // If AI starts, set thinking to true
-      message: isPlayerStart 
+      message: isPlayerStart
         ? '🎲 You have been randomly selected to start! Choose a pit (0-5)'
         : '🎲 AI has been randomly selected to start first!',
       prevPits: undefined,
@@ -130,6 +124,9 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
     });
     setAnimating(false); setDisplayPits(null); setHandPos(null);
     setGameResultRecorded(false); // Reset for new game
+
+    // Play game start sound
+    playGameSound('start');
   }
 
   function moveHandToPit(pitIndex: number) {
@@ -171,6 +168,7 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
           setView(v => ({ ...v, prevPits: before, state: newState, thinking: true, message, lastMovePit: pit, lastCapturedPits: capturedPits }));
         } catch(e:any) {
           setView(v => ({ ...v, message: 'Invalid move: ' + e.message }));
+          playGameSound('invalid');
         } finally {
           setAnimating(false);
           setHandPos(null);
@@ -182,8 +180,8 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
       temp[target] += 1;
       setDisplayPits(temp.slice());
       moveHandToPit(target);
-      // Play a drop tone each seed including first (immediate feedback)
-      playTone('drop');
+      // Play a drop sound each seed including first (immediate feedback)
+      playGameSound('drop');
       step++;
       setTimeout(tick, per);
     }
@@ -223,8 +221,8 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
             for (let p=0;p<6;p++) if (beforeState.pits[p] > 0 && newState.pits[p] === 0) capturedPits.push(p);
           }
           setView(v => ({ ...v, prevPits: before, state: newState, thinking: false, message, lastMovePit: pit, lastCapturedPits: capturedPits }));
-          if (result.capturedThisMove) playTone('capture');
-          if (newState.ended) playTone('end');
+          if (result.capturedThisMove) playGameSound('capture');
+          if (newState.ended) playGameSound('end');
         } catch(e:any) {
           setView(v => ({ ...v, thinking:false, message: 'AI error: ' + e.message }));
         } finally {
@@ -238,7 +236,7 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
       temp[target] += 1;
       setDisplayPits(temp.slice());
       moveHandToPit(target);
-      playTone('drop');
+      playGameSound('drop');
       step++;
       setTimeout(tick, per);
     }
@@ -290,12 +288,12 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
   // Game result tracking - record statistics when game ends
   const [gameStartTime] = useState(Date.now());
   const [gameResultRecorded, setGameResultRecorded] = useState(false);
-  
+
   useEffect(() => {
     if (view.state.ended && !gameResultRecorded) {
       const gameEndTime = Date.now();
       const gameDuration = (gameEndTime - gameStartTime) / 1000; // Convert to seconds
-      
+
       const gameResult = {
         won: view.state.winner === 'A',
         seedsCaptured: view.state.captured.A,
@@ -303,14 +301,14 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
         opponent: 'AI',
         timestamp: gameEndTime
       };
-      
+
       try {
         ProfileService.recordGameResult(gameResult);
         console.log('🎮 Game result recorded:', gameResult);
       } catch (error) {
         console.error('Failed to record game result:', error);
       }
-      
+
       setGameResultRecorded(true);
     }
   }, [view.state.ended, view.state.winner, view.state.captured.A, gameStartTime, gameResultRecorded]);
@@ -322,6 +320,24 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
   const containerClass = "awale-container theme-"+theme;
   return (
   <div className={containerClass}>
+      {/* Controls at the top */}
+      <div className="controls">
+        {onExit && <button className="btn" onClick={onExit}>Home</button>}
+        <button className="btn" onClick={restart}>New Game</button>
+        <button className="btn" onClick={() => alert(rulesText)}>Rules</button>
+        <button className="btn mute" onClick={()=> setMuted((m:boolean)=> !m)} data-state={muted? 'off':'on'} aria-label={muted? 'Sound is muted, click to unmute':'Sound is on, click to mute'} title="Toggle sound">{muted? 'Unmute' : 'Mute'}</button>
+        <button
+          className="btn"
+          onClick={()=> setTheme(t=> t==='dark'?'wood':'dark')}
+          title="Toggle wood theme"
+        >
+          {theme==='wood' ? 'Dark Mode' : 'Wood Theme'}
+        </button>
+        {/* Audio Controls for Ambient Experience */}
+        <AudioControls />
+      </div>
+
+      {/* Score panel in the middle */}
       <header className="topbar">
         <h1 className="logo">Awale</h1>
         <div className="scorepanel" role="group" aria-label="Scores">
@@ -330,14 +346,9 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
           {winner && <div className="winner" role="status">{winner}</div>}
           <div className="msg" role="status">{view.message}</div>
         </div>
-        <div className="controls">
-          {onExit && <button className="btn" onClick={onExit}>Home</button>}
-          <button className="btn" onClick={restart}>New Game</button>
-          <button className="btn" onClick={() => alert(rulesText)}>Rules</button>
-          <button className="btn mute" onClick={()=> setMuted((m:boolean)=> !m)} data-state={muted? 'off':'on'} aria-label={muted? 'Sound is muted, click to unmute':'Sound is on, click to mute'} title="Toggle sound">{muted? 'Unmute' : 'Mute'}</button>
-          <button className="btn" onClick={()=> setTheme(t=> t==='dark'?'wood':'dark')} aria-pressed={theme==='wood'} title="Toggle wood theme">{theme==='wood' ? 'Dark Mode' : 'Wood Theme'}</button>
-        </div>
       </header>
+
+      {/* Board at the bottom */}
       <div className="board-shell">
         <Board
           ref={boardRef}
