@@ -9,14 +9,14 @@ import { analytics, getGameType, calculateGameDuration, type GameType, type Game
 const PORT = parseInt(process.env.PORT || '8080', 10);
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN; // Optional strict origin check
 
-interface PlayerInfo { 
-  id: string; 
-  name: string; 
+interface PlayerInfo {
+  id: string;
+  name: string;
   playerId?: string;  // Client-provided persistent ID
-  token: string; 
-  connected: boolean; 
-  ws?: WebSocket; 
-  lastSeen: number; 
+  token: string;
+  connected: boolean;
+  ws?: WebSocket;
+  lastSeen: number;
 }
 interface GameSession {
 	id: string;
@@ -45,7 +45,7 @@ const activeInvitations = new Map<string, { from: LobbyPlayer; to: LobbyPlayer; 
 // Lobby message broadcast
 function broadcastToLobby(message: ServerToClient) {
 	const closedConnections: string[] = [];
-	
+
 	for (const [playerId, connection] of lobbyConnections) {
 		if (connection.ws.readyState === WebSocket.OPEN) {
 			send(connection.ws, message);
@@ -54,7 +54,7 @@ function broadcastToLobby(message: ServerToClient) {
 			closedConnections.push(playerId);
 		}
 	}
-	
+
 	// Clean up closed connections
 	for (const playerId of closedConnections) {
 		console.log('🌐 Cleaning up closed connection for player:', lobbyConnections.get(playerId)?.player.name);
@@ -67,7 +67,7 @@ setInterval(() => {
 	const now = Date.now();
 	const LOBBY_TIMEOUT = 300_000; // 5 minutes
 	const INVITATION_TIMEOUT = 60_000; // 1 minute
-	
+
 	// Clean stale lobby connections
 	for (const [playerId, connection] of lobbyConnections) {
 		if (now - connection.lastSeen > LOBBY_TIMEOUT) {
@@ -75,14 +75,14 @@ setInterval(() => {
 			broadcastToLobby({ type: 'lobby', action: 'player-left', playerId });
 		}
 	}
-	
+
 	// Clean old invitations
 	for (const [inviteId, invite] of activeInvitations) {
 		if (now - invite.timestamp > INVITATION_TIMEOUT) {
 			activeInvitations.delete(inviteId);
 		}
 	}
-	
+
 	// Limit chat history
 	if (lobbyChatMessages.length > 100) {
 		lobbyChatMessages.splice(0, lobbyChatMessages.length - 100);
@@ -148,7 +148,7 @@ function trackLobbyMetrics() {
 	const connections = Array.from(lobbyConnections.values());
 	const availablePlayers = connections.filter(c => c.player.status === 'available').length;
 	const inGamePlayers = connections.filter(c => c.player.status === 'in-game').length;
-	
+
 	analytics.trackLobbyMetrics({
 		connectedPlayers: connections.length,
 		availablePlayers,
@@ -190,7 +190,7 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 		const isLocalhost = origin.includes('localhost:') || origin.includes('127.0.0.1:') || origin.includes('::1:');
 		const isAllowedOrigin = origin === ALLOWED_ORIGIN;
 		const isGitHubPages = origin.includes('.github.io');
-		
+
 		if (!isLocalhost && !isAllowedOrigin && !isGitHubPages) {
 			console.log(`🚫 Origin not allowed: ${origin}`);
 			ws.close(4001, 'origin not allowed');
@@ -207,7 +207,7 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 			// 🌐 Lobby System Messages
 			case 'lobby': {
 				if (!checkRate(ws)) return send(ws, { type: 'error', code: 'RATE_LIMIT', message: 'Too many messages' });
-				
+
 				switch (msg.action) {
 					case 'join': {
 						const player: LobbyPlayer = {
@@ -217,7 +217,7 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 							status: 'available',
 							joinedAt: Date.now()
 						};
-						
+
 						// Remove any existing connection for this player ID
 						const existingConnection = lobbyConnections.get(player.id);
 						if (existingConnection) {
@@ -229,7 +229,7 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 							lobbyConnections.delete(player.id);
 							broadcastToLobby({ type: 'lobby', action: 'player-left', playerId: player.id });
 						}
-						
+
 						// Also check for any connections with the same WebSocket (shouldn't happen, but safety)
 						for (const [pid, connection] of lobbyConnections) {
 							if (connection.ws === ws) {
@@ -238,7 +238,7 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 								broadcastToLobby({ type: 'lobby', action: 'player-left', playerId: pid });
 							}
 						}
-						
+
 						// Add new connection
 						console.log('🌐 Adding new connection for player:', player.name);
 						lobbyConnections.set(player.id, {
@@ -246,26 +246,26 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 							player,
 							lastSeen: Date.now()
 						});
-						
+
 						// Track lobby connection
 						analytics.trackLobbyConnection(player.id, player.name, 'connect');
-						
+
 						// Send current lobby state to joining player
 						const players = Array.from(lobbyConnections.values()).map(c => c.player);
 						send(ws, { type: 'lobby', players, messages: lobbyChatMessages.slice(-50) });
-						
+
 						// Broadcast player joined to others
 						broadcastToLobby({ type: 'lobby', action: 'player-joined', player });
 						break;
 					}
-					
+
 					case 'leave': {
 						// Find the player by WebSocket connection
 						for (const [playerId, connection] of lobbyConnections) {
 							if (connection.ws === ws) {
 								// Track lobby disconnection
 								analytics.trackLobbyConnection(connection.player.id, connection.player.name, 'disconnect');
-								
+
 								lobbyConnections.delete(playerId);
 								broadcastToLobby({ type: 'lobby', action: 'player-left', playerId });
 								break;
@@ -273,25 +273,25 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 						}
 						break;
 					}
-					
+
 					case 'status': {
 						// Find the player by WebSocket connection
 						for (const [playerId, connection] of lobbyConnections) {
 							if (connection.ws === ws) {
 								connection.player.status = msg.status;
 								connection.lastSeen = Date.now();
-								broadcastToLobby({ 
-									type: 'lobby', 
-									action: 'player-status', 
-									playerId, 
-									status: msg.status 
+								broadcastToLobby({
+									type: 'lobby',
+									action: 'player-status',
+									playerId,
+									status: msg.status
 								});
 								break;
 							}
 						}
 						break;
 					}
-					
+
 					case 'chat': {
 						// Find the player by WebSocket connection
 						let senderConnection: LobbyConnection | undefined;
@@ -301,11 +301,11 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 								break;
 							}
 						}
-						
+
 						if (!senderConnection) {
 							return send(ws, { type: 'error', code: 'NOT_IN_LOBBY', message: 'Not in lobby' });
 						}
-						
+
 						const chatMessage: ChatMessage = {
 							id: newId(),
 							playerId: senderConnection.player.id,
@@ -314,12 +314,12 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 							timestamp: Date.now(),
 							type: 'message'
 						};
-						
+
 						lobbyChatMessages.push(chatMessage);
 						broadcastToLobby({ type: 'lobby', action: 'chat-message', message: chatMessage });
 						break;
 					}
-					
+
 					case 'invite': {
 						// Find sender by WebSocket connection
 						let fromConnection: LobbyConnection | undefined;
@@ -329,24 +329,24 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 								break;
 							}
 						}
-						
+
 						if (!fromConnection) {
 							return send(ws, { type: 'error', code: 'NOT_IN_LOBBY', message: 'Not in lobby' });
 						}
-						
+
 						const toConnection = lobbyConnections.get(msg.targetPlayerId);
 						if (!toConnection) {
 							return send(ws, { type: 'error', code: 'PLAYER_NOT_FOUND', message: 'Player not in lobby' });
 						}
-						
+
 						if (toConnection.player.status !== 'available') {
 							return send(ws, { type: 'error', code: 'PLAYER_BUSY', message: 'Player is not available' });
 						}
-						
+
 						// Create game session for the invitation
 						const gameId = newId();
 						const inviteId = newId();
-						
+
 						// Store invitation
 						activeInvitations.set(inviteId, {
 							from: fromConnection.player,
@@ -354,189 +354,189 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 							gameId,
 							timestamp: Date.now()
 						});
-						
+
 						// Track invitation sent
 						analytics.trackInvitation(fromConnection.player.id, toConnection.player.id, 'sent');
-						
+
 						// Send invitation to target player
-						send(toConnection.ws, { 
-							type: 'lobby', 
-							action: 'invitation', 
-							from: fromConnection.player, 
-							gameId, 
-							inviteId 
+						send(toConnection.ws, {
+							type: 'lobby',
+							action: 'invitation',
+							from: fromConnection.player,
+							gameId,
+							inviteId
 						});
-						
+
 						// Update sender status to 'away' (waiting for response)
 						fromConnection.player.status = 'away';
-						broadcastToLobby({ 
-							type: 'lobby', 
-							action: 'player-status', 
-							playerId: fromConnection.player.id, 
-							status: 'away' 
+						broadcastToLobby({
+							type: 'lobby',
+							action: 'player-status',
+							playerId: fromConnection.player.id,
+							status: 'away'
 						});
-						
+
 						break;
 					}
-					
+
 					case 'accept-invite': {
 						const invitation = activeInvitations.get(msg.inviteId);
 						if (!invitation) {
 							return send(ws, { type: 'error', code: 'INVITATION_NOT_FOUND', message: 'Invitation expired or not found' });
 						}
-						
+
 						const respondingConnection = lobbyConnections.get(invitation.to.id);
 						if (!respondingConnection || respondingConnection.ws !== ws) {
 							return send(ws, { type: 'error', code: 'NOT_INVITED', message: 'You were not invited' });
 						}
-						
+
 						const inviterConnection = lobbyConnections.get(invitation.from.id);
-						
+
 						// Clean up invitation
 						activeInvitations.delete(msg.inviteId);
-						
+
 						// Track invitation accepted
 						analytics.trackInvitation(invitation.from.id, invitation.to.id, 'accepted');
-						
+
 						if (inviterConnection) {
 							// Create actual game session
 							const token = newToken();
-							const host: PlayerInfo = { 
-								id: 'host', 
-								name: invitation.from.name, 
+							const host: PlayerInfo = {
+								id: 'host',
+								name: invitation.from.name,
 								playerId: invitation.from.id,
-								token, 
-								connected: true, 
-								ws: inviterConnection.ws, 
-								lastSeen: Date.now() 
+								token,
+								connected: true,
+								ws: inviterConnection.ws,
+								lastSeen: Date.now()
 							};
-							
-							const game: GameSession = { 
-								id: invitation.gameId, 
-								host, 
-								state: createInitialState(), 
-								createdAt: Date.now(), 
-								updatedAt: Date.now(), 
-								moveSeq: 0 
+
+							const game: GameSession = {
+								id: invitation.gameId,
+								host,
+								state: createInitialState(),
+								createdAt: Date.now(),
+								updatedAt: Date.now(),
+								moveSeq: 0
 							};
-							
+
 							games.set(invitation.gameId, game);
-							
+
 							// Update player statuses to 'in-game'
 							inviterConnection.player.status = 'in-game';
 							inviterConnection.player.gameId = invitation.gameId;
 							respondingConnection.player.status = 'in-game';
 							respondingConnection.player.gameId = invitation.gameId;
-							
+
 							// Broadcast status updates
-							broadcastToLobby({ 
-								type: 'lobby', 
-								action: 'player-status', 
-								playerId: invitation.from.id, 
-								status: 'in-game' 
+							broadcastToLobby({
+								type: 'lobby',
+								action: 'player-status',
+								playerId: invitation.from.id,
+								status: 'in-game'
 							});
-							broadcastToLobby({ 
-								type: 'lobby', 
-								action: 'player-status', 
-								playerId: invitation.to.id, 
-								status: 'in-game' 
+							broadcastToLobby({
+								type: 'lobby',
+								action: 'player-status',
+								playerId: invitation.to.id,
+								status: 'in-game'
 							});
-							
+
 							// Send game creation messages
 							send(inviterConnection.ws, { type: 'created', gameId: invitation.gameId, playerToken: token });
 							send(inviterConnection.ws, { type: 'state', gameId: invitation.gameId, version: game.state.version || 0, state: toPublicState(game.state) });
-							
+
 							// Auto-join guest
 							const guestToken = newToken();
-							const guest: PlayerInfo = { 
-								id: 'guest', 
-								name: invitation.to.name, 
+							const guest: PlayerInfo = {
+								id: 'guest',
+								name: invitation.to.name,
 								playerId: invitation.to.id,
-								token: guestToken, 
-								connected: true, 
-								ws: respondingConnection.ws, 
-								lastSeen: Date.now() 
+								token: guestToken,
+								connected: true,
+								ws: respondingConnection.ws,
+								lastSeen: Date.now()
 							};
-							
+
 							game.guest = guest;
 							game.updatedAt = Date.now();
-							
+
 							send(respondingConnection.ws, { type: 'joined', gameId: invitation.gameId, role: 'guest', opponent: invitation.from.name });
 							send(respondingConnection.ws, { type: 'state', gameId: invitation.gameId, version: game.state.version || 0, state: toPublicState(game.state) });
 							send(inviterConnection.ws, { type: 'joined', gameId: invitation.gameId, role: 'host', opponent: invitation.to.name });
-							
+
 							// Start the game with randomized first player
 							const randomStart = Math.random() < 0.5;
 							game.startingPlayer = randomStart ? 'host' : 'guest';
-							
+
 							if (game.startingPlayer === 'guest') {
 								game.state = { ...game.state, currentPlayer: 'B' };
 							}
-							
-							broadcast(game, { 
-								type: 'gameStarting', 
-								gameId: game.id, 
+
+							broadcast(game, {
+								type: 'gameStarting',
+								gameId: game.id,
 								startingPlayer: game.startingPlayer,
 								message: `Random selection: ${game.startingPlayer === 'host' ? game.host.name : game.guest.name} starts first!`
 							});
-							
-							broadcast(game, { 
-								type: 'state', 
-								gameId: game.id, 
-								version: game.state.version || 0, 
-								state: toPublicState(game.state) 
+
+							broadcast(game, {
+								type: 'state',
+								gameId: game.id,
+								version: game.state.version || 0,
+								state: toPublicState(game.state)
 							});
 						}
-						
+
 						// Send response back to both players
 						if (inviterConnection) {
-							send(inviterConnection.ws, { 
-								type: 'lobby', 
-								action: 'invitation-response', 
-								accepted: true, 
-								gameId: invitation.gameId, 
-								inviteId: msg.inviteId 
+							send(inviterConnection.ws, {
+								type: 'lobby',
+								action: 'invitation-response',
+								accepted: true,
+								gameId: invitation.gameId,
+								inviteId: msg.inviteId
 							});
 						}
 						break;
 					}
-					
+
 					case 'decline-invite': {
 						const invitation = activeInvitations.get(msg.inviteId);
 						if (!invitation) {
 							return send(ws, { type: 'error', code: 'INVITATION_NOT_FOUND', message: 'Invitation expired or not found' });
 						}
-						
+
 						const respondingConnection = lobbyConnections.get(invitation.to.id);
 						if (!respondingConnection || respondingConnection.ws !== ws) {
 							return send(ws, { type: 'error', code: 'NOT_INVITED', message: 'You were not invited' });
 						}
-						
+
 						const inviterConnection = lobbyConnections.get(invitation.from.id);
-						
+
 						// Clean up invitation
 						activeInvitations.delete(msg.inviteId);
-						
+
 						// Track invitation declined
 						analytics.trackInvitation(invitation.from.id, invitation.to.id, 'declined');
-						
+
 						// Reset inviter status to available
 						if (inviterConnection) {
 							inviterConnection.player.status = 'available';
-							broadcastToLobby({ 
-								type: 'lobby', 
-								action: 'player-status', 
-								playerId: invitation.from.id, 
-								status: 'available' 
+							broadcastToLobby({
+								type: 'lobby',
+								action: 'player-status',
+								playerId: invitation.from.id,
+								status: 'available'
 							});
-							
+
 							// Send response back to inviter
-							send(inviterConnection.ws, { 
-								type: 'lobby', 
-								action: 'invitation-response', 
-								accepted: false, 
-								gameId: invitation.gameId, 
-								inviteId: msg.inviteId 
+							send(inviterConnection.ws, {
+								type: 'lobby',
+								action: 'invitation-response',
+								accepted: false,
+								gameId: invitation.gameId,
+								inviteId: msg.inviteId
 							});
 						}
 						break;
@@ -544,25 +544,25 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 				}
 				break;
 			}
-			
+
 			case 'create': {
 				const gameId = newId();
 				const token = newToken();
-				const host: PlayerInfo = { 
-					id: 'host', 
-					name: msg.name || 'Host', 
+				const host: PlayerInfo = {
+					id: 'host',
+					name: msg.name || 'Host',
 					playerId: msg.playerId,
-					token, 
-					connected: true, 
-					ws, 
-					lastSeen: Date.now() 
+					token,
+					connected: true,
+					ws,
+					lastSeen: Date.now()
 				};
 				const game: GameSession = { id: gameId, host, state: createInitialState(), createdAt: Date.now(), updatedAt: Date.now(), moveSeq: 0 };
 				games.set(gameId, game);
-				
+
 				// Track game creation
 				analytics.trackGameCreated(gameId, getGameType('create'), host.playerId || host.id);
-				
+
 				send(ws, { type: 'created', gameId, playerToken: token });
 				send(ws, { type: 'state', gameId, version: game.state.version || 0, state: toPublicState(game.state) });
 				break;
@@ -570,7 +570,7 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 			case 'join': {
 				const game = games.get(msg.gameId);
 				if (!game) return send(ws, { type: 'error', code: 'GAME_NOT_FOUND', message: 'Game not found' });
-				
+
 				// Check for reconnection with same playerId
 				if (msg.playerId) {
 					// Check if this playerId is the host trying to reconnect
@@ -581,36 +581,36 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 						game.host.lastSeen = Date.now();
 						send(ws, { type: 'joined', gameId: game.id, role: 'host', opponent: game.guest?.name });
 						send(ws, { type: 'state', gameId: game.id, version: game.state.version || 0, state: toPublicState(game.state) });
-						
+
 						// Check if we need to randomize start (both players now connected)
 						if (!game.startingPlayer && game.guest?.connected) {
 							const randomStart = Math.random() < 0.5;
 							game.startingPlayer = randomStart ? 'host' : 'guest';
-							
+
 							console.log(`🎲 Game ${game.id}: Random start on reconnection - ${game.startingPlayer} (${game.startingPlayer === 'host' ? game.host.name : game.guest.name}) goes first`);
-							
+
 							if (game.startingPlayer === 'guest') {
 								game.state = { ...game.state, currentPlayer: 'B' };
 							}
-							
-							broadcast(game, { 
-								type: 'gameStarting', 
-								gameId: game.id, 
+
+							broadcast(game, {
+								type: 'gameStarting',
+								gameId: game.id,
 								startingPlayer: game.startingPlayer,
 								message: `Random selection: ${game.startingPlayer === 'host' ? game.host.name : game.guest.name} starts first!`
 							});
-							
-							broadcast(game, { 
-								type: 'state', 
-								gameId: game.id, 
-								version: game.state.version || 0, 
-								state: toPublicState(game.state) 
+
+							broadcast(game, {
+								type: 'state',
+								gameId: game.id,
+								version: game.state.version || 0,
+								state: toPublicState(game.state)
 							});
 						}
-						
+
 						return;
 					}
-					
+
 					// Check if this playerId is the guest trying to reconnect
 					if (game.guest?.playerId === msg.playerId) {
 						console.log(`🔄 Guest reconnecting with playerId: ${msg.playerId}`);
@@ -619,104 +619,104 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 						game.guest.lastSeen = Date.now();
 						send(ws, { type: 'joined', gameId: game.id, role: 'guest', opponent: game.host.name });
 						send(ws, { type: 'state', gameId: game.id, version: game.state.version || 0, state: toPublicState(game.state) });
-						
+
 						// Check if we need to randomize start (both players now connected)
 						if (!game.startingPlayer && game.host.connected) {
 							const randomStart = Math.random() < 0.5;
 							game.startingPlayer = randomStart ? 'host' : 'guest';
-							
+
 							console.log(`🎲 Game ${game.id}: Random start on guest reconnection - ${game.startingPlayer} (${game.startingPlayer === 'host' ? game.host.name : game.guest.name}) goes first`);
-							
+
 							if (game.startingPlayer === 'guest') {
 								game.state = { ...game.state, currentPlayer: 'B' };
 							}
-							
-							broadcast(game, { 
-								type: 'gameStarting', 
-								gameId: game.id, 
+
+							broadcast(game, {
+								type: 'gameStarting',
+								gameId: game.id,
 								startingPlayer: game.startingPlayer,
 								message: `Random selection: ${game.startingPlayer === 'host' ? game.host.name : game.guest.name} starts first!`
 							});
-							
-							broadcast(game, { 
-								type: 'state', 
-								gameId: game.id, 
-								version: game.state.version || 0, 
-								state: toPublicState(game.state) 
+
+							broadcast(game, {
+								type: 'state',
+								gameId: game.id,
+								version: game.state.version || 0,
+								state: toPublicState(game.state)
 							});
 						}
-						
+
 						return;
 					}
 				}
-				
+
 				// Regular join logic (new player)
 				if (game.guest) return send(ws, { type: 'error', code: 'FULL', message: 'Game full' });
 				const token = newToken();
-				const guest: PlayerInfo = { 
-					id: 'guest', 
-					name: msg.name || 'Guest', 
+				const guest: PlayerInfo = {
+					id: 'guest',
+					name: msg.name || 'Guest',
 					playerId: msg.playerId,
-					token, 
-					connected: true, 
-					ws, 
-					lastSeen: Date.now() 
+					token,
+					connected: true,
+					ws,
+					lastSeen: Date.now()
 				};
 				game.guest = guest; game.updatedAt = Date.now();
-				
+
 				// Track player joining
 				analytics.trackPlayerJoined(game.id, guest.playerId || guest.id, 'guest', getGameType('join'));
-				
+
 				send(ws, { type: 'joined', gameId: game.id, role: 'guest', opponent: game.host.name });
 				send(ws, { type: 'state', gameId: game.id, version: game.state.version || 0, state: toPublicState(game.state) });
 				if (game.host.ws && game.host.connected) send(game.host.ws, { type: 'joined', gameId: game.id, role: 'host', opponent: guest.name });
-				
+
 				// Randomize starting player when both players are connected
 				if (!game.startingPlayer && game.host.connected && game.guest.connected) {
 					const randomStart = Math.random() < 0.5;
 					game.startingPlayer = randomStart ? 'host' : 'guest';
-					
+
 					// Track game start
 					analytics.trackGameStarted(
-						game.id, 
-						getGameType('join'), 
-						game.host.playerId || game.host.id, 
+						game.id,
+						getGameType('join'),
+						game.host.playerId || game.host.id,
 						game.guest.playerId || game.guest.id
 					);
-					
+
 					// Create appropriate messages
 					const startMessages = {
-						host: game.startingPlayer === 'host' 
-							? `🎲 You have been randomly selected to start the game!` 
+						host: game.startingPlayer === 'host'
+							? `🎲 You have been randomly selected to start the game!`
 							: `🎲 ${game.guest.name} has been randomly selected to start the game.`,
-						guest: game.startingPlayer === 'guest' 
-							? `🎲 You have been randomly selected to start the game!` 
+						guest: game.startingPlayer === 'guest'
+							? `🎲 You have been randomly selected to start the game!`
 							: `🎲 ${game.host.name} has been randomly selected to start the game.`
 					};
-					
+
 					console.log(`🎲 Game ${game.id}: Random start selected - ${game.startingPlayer} (${game.startingPlayer === 'host' ? game.host.name : game.guest.name}) goes first`);
-					
+
 					// If guest was selected to start, we need to modify the game state
 					if (game.startingPlayer === 'guest') {
 						// Switch the current player from 'A' to 'B' so guest starts
 						game.state = { ...game.state, currentPlayer: 'B' };
 						console.log(`🎲 Game state updated: guest (player B) starts first`);
 					}
-					
+
 					// Notify both players about who starts
-					broadcast(game, { 
-						type: 'gameStarting', 
-						gameId: game.id, 
+					broadcast(game, {
+						type: 'gameStarting',
+						gameId: game.id,
 						startingPlayer: game.startingPlayer,
 						message: `Random selection: ${game.startingPlayer === 'host' ? game.host.name : game.guest.name} starts first!`
 					});
-					
+
 					// Send updated state to reflect starting player change
-					broadcast(game, { 
-						type: 'state', 
-						gameId: game.id, 
-						version: game.state.version || 0, 
-						state: toPublicState(game.state) 
+					broadcast(game, {
+						type: 'state',
+						gameId: game.id,
+						version: game.state.version || 0,
+						state: toPublicState(game.state)
 					});
 				}
 				break;
@@ -726,12 +726,12 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 				const game = games.get(msg.gameId);
 				if (!game) return send(ws, { type: 'error', code: 'GAME_NOT_FOUND', message: 'Game not found' });
 				if (game.state.ended) return send(ws, { type: 'error', code: 'ENDED', message: 'Game ended' });
-				
+
 				// Check if both players are present
 				if (!game.guest || !game.guest.connected) {
 					return send(ws, { type: 'error', code: 'WAITING_FOR_OPPONENT', message: 'Waiting for opponent to join' });
 				}
-				
+
 				// Identify player
 				const player = (game.host.ws === ws) ? 'host' : (game.guest?.ws === ws ? 'guest' : undefined);
 				if (!player) return send(ws, { type: 'error', code: 'NOT_IN_GAME', message: 'Not part of this game' });
@@ -754,7 +754,7 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 						// Track game completion
 						const duration = calculateGameDuration(game.createdAt, Date.now());
 						const winner = game.state.winner === 'A' ? 'host' : game.state.winner === 'B' ? 'guest' : 'draw';
-						
+
 						analytics.trackGameEnded(
 							{
 								gameId: game.id,
@@ -768,32 +768,32 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 							game.host.playerId || game.host.id,
 							game.guest?.playerId || game.guest?.id
 						);
-						
+
 						broadcast(game, { type: 'gameEnded', gameId: game.id, reason: 'end', final: toPublicState(game.state) });
-						
+
 						// Return players to lobby as available
 						const hostLobbyConnection = Array.from(lobbyConnections.values()).find(c => c.player.id === game.host.playerId);
 						const guestLobbyConnection = game.guest ? Array.from(lobbyConnections.values()).find(c => c.player.id === game.guest?.playerId) : undefined;
-						
+
 						if (hostLobbyConnection) {
 							hostLobbyConnection.player.status = 'available';
 							hostLobbyConnection.player.gameId = undefined;
-							broadcastToLobby({ 
-								type: 'lobby', 
-								action: 'player-status', 
-								playerId: game.host.playerId!, 
-								status: 'available' 
+							broadcastToLobby({
+								type: 'lobby',
+								action: 'player-status',
+								playerId: game.host.playerId!,
+								status: 'available'
 							});
 						}
-						
+
 						if (guestLobbyConnection && game.guest) {
 							guestLobbyConnection.player.status = 'available';
 							guestLobbyConnection.player.gameId = undefined;
-							broadcastToLobby({ 
-								type: 'lobby', 
-								action: 'player-status', 
-								playerId: game.guest.playerId!, 
-								status: 'available' 
+							broadcastToLobby({
+								type: 'lobby',
+								action: 'player-status',
+								playerId: game.guest.playerId!,
+								status: 'available'
 							});
 						}
 					}
@@ -808,12 +808,12 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 				if (!game.state.ended) {
 					game.state.ended = true;
 					game.updatedAt = Date.now();
-					
+
 					// Track resignation
 					const duration = calculateGameDuration(game.createdAt, Date.now());
 					const resigner = (ws === game.host.ws) ? 'host' : 'guest';
 					const winner = resigner === 'host' ? 'guest' : 'host';
-					
+
 					analytics.trackGameEnded(
 						{
 							gameId: game.id,
@@ -827,32 +827,32 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 						game.host.playerId || game.host.id,
 						game.guest?.playerId || game.guest?.id
 					);
-					
+
 					broadcast(game, { type: 'gameEnded', gameId: game.id, reason: 'resign', final: toPublicState(game.state) });
-					
+
 					// Return players to lobby as available
 					const hostLobbyConnection = Array.from(lobbyConnections.values()).find(c => c.player.id === game.host.playerId);
 					const guestLobbyConnection = game.guest ? Array.from(lobbyConnections.values()).find(c => c.player.id === game.guest?.playerId) : undefined;
-					
+
 					if (hostLobbyConnection) {
 						hostLobbyConnection.player.status = 'available';
 						hostLobbyConnection.player.gameId = undefined;
-						broadcastToLobby({ 
-							type: 'lobby', 
-							action: 'player-status', 
-							playerId: game.host.playerId!, 
-							status: 'available' 
+						broadcastToLobby({
+							type: 'lobby',
+							action: 'player-status',
+							playerId: game.host.playerId!,
+							status: 'available'
 						});
 					}
-					
+
 					if (guestLobbyConnection && game.guest) {
 						guestLobbyConnection.player.status = 'available';
 						guestLobbyConnection.player.gameId = undefined;
-						broadcastToLobby({ 
-							type: 'lobby', 
-							action: 'player-status', 
-							playerId: game.guest.playerId!, 
-							status: 'available' 
+						broadcastToLobby({
+							type: 'lobby',
+							action: 'player-status',
+							playerId: game.guest.playerId!,
+							status: 'available'
 						});
 					}
 				}
@@ -869,39 +869,39 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 
 	ws.on('close', () => {
 		console.log('🌐 WebSocket connection closed');
-		
+
 		// Mark disconnected; do not delete game yet (allows reconnect logic later)
 		for (const g of games.values()) {
-			if (g.host.ws === ws) { 
-				g.host.connected = false; 
+			if (g.host.ws === ws) {
+				g.host.connected = false;
 				// Update lobby status if player was in lobby
 				const lobbyConnection = Array.from(lobbyConnections.values()).find(c => c.player.id === g.host.playerId);
 				if (lobbyConnection) {
 					lobbyConnection.player.status = 'offline';
-					broadcastToLobby({ 
-						type: 'lobby', 
-						action: 'player-status', 
-						playerId: g.host.playerId!, 
-						status: 'offline' 
+					broadcastToLobby({
+						type: 'lobby',
+						action: 'player-status',
+						playerId: g.host.playerId!,
+						status: 'offline'
 					});
 				}
 			}
-			if (g.guest && g.guest.ws === ws) { 
-				g.guest.connected = false; 
+			if (g.guest && g.guest.ws === ws) {
+				g.guest.connected = false;
 				// Update lobby status if player was in lobby
 				const lobbyConnection = Array.from(lobbyConnections.values()).find(c => c.player.id === g.guest?.playerId);
 				if (lobbyConnection) {
 					lobbyConnection.player.status = 'offline';
-					broadcastToLobby({ 
-						type: 'lobby', 
-						action: 'player-status', 
-						playerId: g.guest.playerId!, 
-						status: 'offline' 
+					broadcastToLobby({
+						type: 'lobby',
+						action: 'player-status',
+						playerId: g.guest.playerId!,
+						status: 'offline'
 					});
 				}
 			}
 		}
-		
+
 		// Handle lobby disconnections - find by WebSocket connection
 		let removedPlayerId: string | null = null;
 		for (const [playerId, connection] of lobbyConnections) {
@@ -910,13 +910,13 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 				lobbyConnections.delete(playerId);
 				removedPlayerId = playerId;
 				broadcastToLobby({ type: 'lobby', action: 'player-left', playerId });
-				
+
 				// Track lobby disconnection
 				analytics.trackLobbyConnection(connection.player.id, connection.player.name, 'disconnect');
 				break;
 			}
 		}
-		
+
 		// Clean up any invitations from this player
 		if (removedPlayerId) {
 			for (const [inviteId, invite] of activeInvitations) {

@@ -32,16 +32,16 @@ export class OnlineClient {
       }
     };
     this.ws.onmessage = (e) => {
-      try { 
-        const msg = JSON.parse(e.data); 
+      try {
+        const msg = JSON.parse(e.data);
         console.log('📥 WebSocket received:', msg);
-        this.listeners.forEach(l => l(msg)); 
+        this.listeners.forEach(l => l(msg));
       } catch {/*ignore*/}
     };
     this.ws.onclose = (event) => {
       console.log('🔌 WebSocket closed, manualClose:', this.manualClose, 'code:', event.code, 'reason:', event.reason);
       if (this.manualClose) return;
-      
+
       // Only reconnect for unexpected closures, not normal ones
       if (event.code !== 1000 && event.code !== 1001) {
         // basic exponential backoff reconnection skeleton (future token usage)
@@ -53,10 +53,10 @@ export class OnlineClient {
     };
   }
 
-  close(){ 
-    this.manualClose = true; 
+  close(){
+    this.manualClose = true;
     this.reconnectAttempts = 0; // Stop reconnection attempts
-    this.ws?.close(); 
+    this.ws?.close();
   }
 
   send(obj: any) {

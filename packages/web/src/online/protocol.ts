@@ -30,7 +30,7 @@ export interface ChatMessage {
 export interface GameInvitation {
   id: string;
   from: string;         // Player ID who sent
-  to: string;           // Player ID who receives  
+  to: string;           // Player ID who receives
   gameId: string;       // Pre-created game ID
   timestamp: number;
   status: 'pending' | 'accepted' | 'declined' | 'expired';
@@ -64,7 +64,7 @@ export type ClientToServer =
   | { type: 'ping'; ts?: number }
   // 🌐 Lobby Messages
   | { type: 'lobby'; action: 'join'; playerId: string; playerName: string; avatar?: string }
-  | { type: 'lobby'; action: 'leave' } 
+  | { type: 'lobby'; action: 'leave' }
   | { type: 'lobby'; action: 'chat'; message: string }
   | { type: 'lobby'; action: 'invite'; targetPlayerId: string }
   | { type: 'lobby'; action: 'accept-invite'; inviteId: string }
