@@ -44,10 +44,10 @@ export class PresenceService {
     }
 
     console.log('🌐 Connecting to lobby:', serverUrl);
-    
+
     const profile = ProfileService.getProfile();
     this.client = new OnlineClient({ url: serverUrl });
-    
+
     // Subscribe to messages
     this.unsubscribe = this.client.on((msg: ServerToClient) => {
       this.handleMessage(msg);
@@ -55,7 +55,7 @@ export class PresenceService {
 
     // Connect and join lobby
     this.client.connect();
-    
+
     // Wait a moment for connection, then join lobby
     setTimeout(() => {
       this.joinLobby();
@@ -71,7 +71,7 @@ export class PresenceService {
       this.client.close();
       this.client = null;
     }
-    
+
     if (this.unsubscribe) {
       this.unsubscribe();
       this.unsubscribe = null;
@@ -83,7 +83,7 @@ export class PresenceService {
       messages: [],
       pendingInvitations: []
     };
-    
+
     this.notifyListeners();
   }
 
@@ -106,7 +106,7 @@ export class PresenceService {
    */
   static sendChatMessage(message: string): void {
     if (!message.trim()) return;
-    
+
     this.sendMessage({
       type: 'lobby',
       action: 'chat',
@@ -132,12 +132,12 @@ export class PresenceService {
     const invitation = this.state.pendingInvitations.find(inv => inv.id === inviteId);
     console.log('🌐 Attempting to accept invitation:', inviteId);
     console.log('🌐 Found invitation in pending list:', invitation ? 'YES' : 'NO');
-    
+
     if (invitation) {
       const ageMs = Date.now() - invitation.timestamp;
       console.log('🌐 Invitation age:', Math.floor(ageMs / 1000), 'seconds');
     }
-    
+
     this.sendMessage({
       type: 'lobby',
       action: 'accept-invite',
@@ -181,7 +181,7 @@ export class PresenceService {
     this.listeners.add(listener);
     // Immediately notify with current state
     listener(this.state);
-    
+
     return () => {
       this.listeners.delete(listener);
     };
@@ -203,14 +203,14 @@ export class PresenceService {
     // Handle error messages
     if (msg.type === 'error') {
       console.error('🌐 Server error:', msg.code, msg.message);
-      
+
       // Handle specific error cases
       if (msg.code === 'INVITATION_NOT_FOUND') {
         console.warn('🌐 Invitation expired or not found - removing from pending invitations');
         // Clear any stale invitations that might be causing issues
         this.state.pendingInvitations = [];
       }
-      
+
       // Still notify listeners so UI can show error state if needed
       this.notifyListeners();
       return;
@@ -231,11 +231,11 @@ export class PresenceService {
         this.state.players = msg.players;
         this.state.messages = msg.messages || [];
         this.state.isConnected = true;
-        
+
         // Find current player
         const profile = ProfileService.getProfile();
         this.state.currentPlayer = msg.players.find(p => p.id === profile.id);
-        
+
         console.log('🌐 Lobby joined successfully:', this.state.players.length, 'players online');
       } else if (msg.action) {
         this.handleLobbyAction(msg);
@@ -308,7 +308,7 @@ export class PresenceService {
       console.warn('🌐 Cannot send message - not connected to lobby');
       return;
     }
-    
+
     this.client.send(msg);
   }
 
@@ -316,9 +316,9 @@ export class PresenceService {
    * Notify all listeners of state changes
    */
   private static notifyListeners(): void {
-    console.log('🌐 Notifying listeners with state:', { 
-      isConnected: this.state.isConnected, 
-      playersCount: this.state.players.length 
+    console.log('🌐 Notifying listeners with state:', {
+      isConnected: this.state.isConnected,
+      playersCount: this.state.players.length
     });
     this.listeners.forEach(listener => {
       try {

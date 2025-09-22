@@ -10,13 +10,13 @@ import { ProfileService } from './services/profile';
 const App: React.FC = () => {
 	const [mode, setMode] = useState<'ai' | 'lobby' | 'online-create' | 'online-join' | null>(null);
 	const [gameInfo, setGameInfo] = useState<{ code?: string; role?: string } | null>(null);
-	
+
 	// Use ProfileService for player data
 	const getPlayerId = () => ProfileService.getPlayerId();
 	const getPlayerName = () => ProfileService.getPlayerName();
-	
+
 	const playerName = getPlayerName();
-	
+
 	// Check for direct join links on load
 	useEffect(() => {
 		const checkForJoinLink = () => {
@@ -36,55 +36,55 @@ const App: React.FC = () => {
 				console.log('ℹ️ No join hash detected');
 			}
 		};
-		
+
 		// Check on initial load
 		console.log('🚀 App starting, checking for join link...');
 		console.log('👤 Player ID:', getPlayerId(), 'Name:', playerName);
 		checkForJoinLink();
-		
+
 		// Listen for hash changes (if user navigates back/forward)
 		window.addEventListener('hashchange', checkForJoinLink);
 		return () => window.removeEventListener('hashchange', checkForJoinLink);
 	}, [playerName]);
-	
+
 	console.log('🎯 Current state:', { mode, gameInfo });
-	
+
 	if (!mode) {
 		console.log('📋 Rendering ModeSelector (no mode set)');
-		return <ModeSelector onSelect={(m, id) => { 
-			console.log('🎮 ModeSelector selected:', { mode: m, id }); 
-			setMode(m); 
-			if (m==='online-join' && id) setGameInfo({ code: id }); 
+		return <ModeSelector onSelect={(m, id) => {
+			console.log('🎮 ModeSelector selected:', { mode: m, id });
+			setMode(m);
+			if (m==='online-join' && id) setGameInfo({ code: id });
 		}} />;
 	}
-	
+
 	if (mode === 'ai') {
 		console.log('🤖 Rendering AI Game');
 		return <Game onExit={()=> { setMode(null); setGameInfo(null); }} />;
 	}
-	
+
 	if (mode === 'lobby') {
 		console.log('🌐 Rendering Lobby');
 		const serverUrl = (import.meta as any).env?.VITE_AWALE_SERVER_WS || (window as any).__AWALE_SERVER__ || 'wss://awale-server.livelybay-5ef501af.francecentral.azurecontainerapps.io/ws';
-		return <LobbyView 
-			onStartGame={(gameId, role) => { 
-				setMode('online-join'); 
-				setGameInfo({ code: gameId, role }); 
+		return <LobbyView
+			onStartGame={(gameId, role) => {
+				setMode('online-join');
+				setGameInfo({ code: gameId, role });
 			}}
-			onExit={() => { setMode(null); setGameInfo(null); }} 
-			serverUrl={serverUrl} 
+			onExit={() => { setMode(null); setGameInfo(null); }}
+			serverUrl={serverUrl}
 		/>;
 	}
 
 	console.log('🌐 Rendering OnlineGame with:', { mode, code: gameInfo?.code, playerName, playerId: getPlayerId() });
 	const serverUrl = (import.meta as any).env?.VITE_AWALE_SERVER_WS || (window as any).__AWALE_SERVER__ || 'wss://awale-server.livelybay-5ef501af.francecentral.azurecontainerapps.io/ws';
-	return <OnlineGame 
-		mode={mode as 'online-create' | 'online-join'} 
-		code={gameInfo?.code} 
+	return <OnlineGame
+		mode={mode as 'online-create' | 'online-join'}
+		code={gameInfo?.code}
 		playerName={playerName}
 		playerId={getPlayerId()}
-		onExit={()=> { setMode(null); setGameInfo(null); }} 
-		serverUrl={serverUrl} 
+		onExit={()=> { setMode(null); setGameInfo(null); }}
+		serverUrl={serverUrl}
 	/>;
 };
 
