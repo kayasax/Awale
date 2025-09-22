@@ -9,6 +9,17 @@
 
 import { AudioTrackConfig } from './ambient-audio';
 
+/**
+ * Get the correct base URL for audio assets based on the environment
+ */
+function getAudioBaseUrl(): string {
+  // Check if we're running on GitHub Pages
+  if (typeof window !== 'undefined' && window.location.hostname === 'kayasax.github.io') {
+    return '/Awale';  // GitHub Pages serves at username.github.io/repository-name/
+  }
+  return '';  // Local development or other hosting
+}
+
 export interface AudioAssetCollection {
   music: Record<string, AudioTrackConfig>;
   ambient: Record<string, AudioTrackConfig>;
@@ -22,28 +33,28 @@ export const AUDIO_ASSETS: AudioAssetCollection = {
   // 🎵 Background Music - Use the actual files that exist
   music: {
     'african-whistle': {
-      url: '/audio/music/african-whistle-398936.mp3', // This file actually exists!
+      url: `${getAudioBaseUrl()}/audio/music/african-whistle-398936.mp3`, // This file actually exists!
       loop: true,
       volume: 0.6,
       fadeInDuration: 2.0,
       fadeOutDuration: 1.5
     },
     'traditional-kora': {
-      url: '/audio/music/traditional-kora.mp3', // Fallback to tone if missing
+      url: `${getAudioBaseUrl()}/audio/music/traditional-kora.mp3`, // Fallback to tone if missing
       loop: true,
       volume: 0.5,
       fadeInDuration: 2.5,
       fadeOutDuration: 2.0
     },
     'peaceful-drums': {
-      url: '/audio/music/peaceful-drums.mp3', // Fallback to tone if missing
+      url: `${getAudioBaseUrl()}/audio/music/peaceful-drums.mp3`, // Fallback to tone if missing
       loop: true,
       volume: 0.7,
       fadeInDuration: 1.5,
       fadeOutDuration: 1.5
     },
     'gentle-ambient': {
-      url: '/audio/music/gentle-ambient.mp3', // Fallback to tone if missing
+      url: `${getAudioBaseUrl()}/audio/music/gentle-ambient.mp3`, // Fallback to tone if missing
       loop: true,
       volume: 0.4,
       fadeInDuration: 3.0,
@@ -54,28 +65,28 @@ export const AUDIO_ASSETS: AudioAssetCollection = {
   // 🌿 Ambient Nature Sounds - African Wildlife/Jungle
   ambient: {
     'gentle-wind': {
-      url: '/audio/ambient/gentle-wind.mp3', // Fallback to tone if missing
+      url: `${getAudioBaseUrl()}/audio/ambient/gentle-wind.mp3`, // Fallback to tone if missing
       loop: true,
       volume: 0.2,
       fadeInDuration: 5.0,
       fadeOutDuration: 4.0
     },
     'savanna-evening': {
-      url: '/audio/ambient/savanna-evening.mp3', // Fallback to tone if missing
+      url: `${getAudioBaseUrl()}/audio/ambient/savanna-evening.mp3`, // Fallback to tone if missing
       loop: true,
       volume: 0.25,
       fadeInDuration: 3.5,
       fadeOutDuration: 3.0
     },
     'forest-birds': {
-      url: '/audio/ambient/forest-birds.mp3', // Fallback to tone if missing
+      url: `${getAudioBaseUrl()}/audio/ambient/forest-birds.mp3`, // Fallback to tone if missing
       loop: true,
       volume: 0.3,
       fadeInDuration: 4.0,
       fadeOutDuration: 3.0
     },
     'desert-wind': {
-      url: '/audio/ambient/desert-wind.mp3', // Fallback to tone if missing
+      url: `${getAudioBaseUrl()}/audio/ambient/desert-wind.mp3`, // Fallback to tone if missing
       loop: true,
       volume: 0.15,
       fadeInDuration: 4.5,
@@ -86,49 +97,49 @@ export const AUDIO_ASSETS: AudioAssetCollection = {
   // 🔊 Game Sound Effects - Enhanced Interaction Sounds
   effects: {
     'wood-click': {
-      url: '/audio/effects/wood-click.wav', // This file exists
+      url: `${getAudioBaseUrl()}/audio/effects/wood-click.wav`, // This file exists
       loop: false,
       volume: 0.8,
       fadeInDuration: 0,
       fadeOutDuration: 0
     },
     'success': {
-      url: '/audio/effects/success.wav', // This file exists
+      url: `${getAudioBaseUrl()}/audio/effects/success.wav`, // This file exists
       loop: false,
       volume: 0.9,
       fadeInDuration: 0,
       fadeOutDuration: 0
     },
     'seed-drop': {
-      url: '/audio/effects/seed-drop.wav', // Generated gentle WAV file
+      url: `${getAudioBaseUrl()}/audio/effects/seed-drop.wav`, // Generated gentle WAV file
       loop: false,
       volume: 0.4, // Much quieter volume
       fadeInDuration: 0,
       fadeOutDuration: 0
     },
     'seed-capture': {
-      url: '/audio/effects/seed-capture.mp3', // Fallback to tone if missing
+      url: `${getAudioBaseUrl()}/audio/effects/seed-capture.mp3`, // Fallback to tone if missing
       loop: false,
       volume: 0.9,
       fadeInDuration: 0,
       fadeOutDuration: 0
     },
     'game-start': {
-      url: '/audio/effects/game-start.mp3', // Fallback to tone if missing
+      url: `${getAudioBaseUrl()}/audio/effects/game-start.mp3`, // Fallback to tone if missing
       loop: false,
       volume: 0.7,
       fadeInDuration: 0,
       fadeOutDuration: 0
     },
     'game-end-win': {
-      url: '/audio/effects/game-end-win.mp3', // Fallback to tone if missing
+      url: `${getAudioBaseUrl()}/audio/effects/game-end-win.mp3`, // Fallback to tone if missing
       loop: false,
       volume: 0.8,
       fadeInDuration: 0,
       fadeOutDuration: 0
     },
     'move-invalid': {
-      url: '/audio/effects/move-invalid.mp3', // Fallback to tone if missing
+      url: `${getAudioBaseUrl()}/audio/effects/move-invalid.mp3`, // Fallback to tone if missing
       loop: false,
       volume: 0.4,
       fadeInDuration: 0,

@@ -5,6 +5,17 @@
  * instead of hardcoding file names that might not exist
  */
 
+/**
+ * Get the correct base URL for audio assets based on the environment
+ */
+function getAudioBaseUrl(): string {
+  // Check if we're running on GitHub Pages
+  if (typeof window !== 'undefined' && window.location.hostname === 'kayasax.github.io') {
+    return '/Awale';  // GitHub Pages serves at username.github.io/repository-name/
+  }
+  return '';  // Local development or other hosting
+}
+
 export interface DiscoveredAudioFile {
   id: string;          // Unique identifier derived from filename
   filename: string;    // Original filename
@@ -85,7 +96,7 @@ export class AudioDiscovery {
     const discovered: DiscoveredAudioFile[] = [];
 
     for (const filename of filesToCheck) {
-      const url = `${directory}${filename}`;
+      const url = `${getAudioBaseUrl()}${directory}${filename}`;
 
       try {
         // Try to actually fetch headers to verify the file exists and is accessible
