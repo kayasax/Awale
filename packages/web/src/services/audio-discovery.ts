@@ -86,9 +86,9 @@ export class AudioDiscovery {
         'African jungle_ morning (2).mp3'  // Only check the one that exists
       ],
       effects: [
-        'seed-drop.mp3', 'seed-drop.wav', 'seed-drop.ogg', // Check MP3 first
-        'success.mp3', 'success.wav', 'success.ogg',
-        'wood-click.mp3', 'wood-click.wav', 'wood-click.ogg'
+        'seed-drop.mp3',    // We know this exists
+        'success.wav',      // We know this exists  
+        'wood-click.wav'    // We know this exists
       ]
     };
 
