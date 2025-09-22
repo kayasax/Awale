@@ -166,6 +166,20 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
             for (let p=6;p<12;p++) if (beforeState.pits[p] > 0 && newState.pits[p] === 0) capturedPits.push(p);
           }
           setView(v => ({ ...v, prevPits: before, state: newState, thinking: true, message, lastMovePit: pit, lastCapturedPits: capturedPits }));
+          
+          // Trigger atmosphere system for player move
+          const moveCount = (before.reduce((sum, seeds) => sum + seeds, 0) - newState.pits.reduce((sum, seeds) => sum + seeds, 0)) / 2;
+          const totalSeeds = newState.pits.reduce((sum, seeds) => sum + seeds, 0);
+          ambientExperience.onMove({ moveCount, seedsLeft: totalSeeds, captureSize: result.capturedThisMove });
+          
+          if (result.capturedThisMove) {
+            ambientExperience.onCapture(result.capturedThisMove);
+          }
+          
+          // Check for critical moments (low seeds remaining)
+          if (totalSeeds < 15) {
+            ambientExperience.onCriticalMoment();
+          }
         } catch(e:any) {
           setView(v => ({ ...v, message: 'Invalid move: ' + e.message }));
           playGameSound('invalid');
@@ -221,6 +235,20 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
             for (let p=0;p<6;p++) if (beforeState.pits[p] > 0 && newState.pits[p] === 0) capturedPits.push(p);
           }
           setView(v => ({ ...v, prevPits: before, state: newState, thinking: false, message, lastMovePit: pit, lastCapturedPits: capturedPits }));
+          
+          // Trigger atmosphere system for AI move
+          const moveCount = (before.reduce((sum, seeds) => sum + seeds, 0) - newState.pits.reduce((sum, seeds) => sum + seeds, 0)) / 2;
+          const totalSeeds = newState.pits.reduce((sum, seeds) => sum + seeds, 0);
+          ambientExperience.onMove({ moveCount, seedsLeft: totalSeeds, captureSize: result.capturedThisMove });
+          
+          if (result.capturedThisMove) {
+            ambientExperience.onCapture(result.capturedThisMove);
+            if (result.capturedThisMove > 8) {
+              // Major AI capture - trigger dramatic moment
+              ambientExperience.onCriticalMoment();
+            }
+          }
+          
           if (result.capturedThisMove) playGameSound('capture');
           if (newState.ended) playGameSound('end');
         } catch(e:any) {
@@ -247,6 +275,9 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
   useEffect(() => {
     if (view.state.ended) return;
     if (!animating && view.state.currentPlayer === 'B') {
+      // Trigger thinking atmosphere when AI starts contemplating
+      ambientExperience.onThinkingMoment();
+      
       const t = setTimeout(() => {
         try {
           const aiMove = greedyStrategy.chooseMove(view.state);

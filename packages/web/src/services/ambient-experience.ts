@@ -5,11 +5,13 @@
  * - Background music rotation
  * - Layered ambient sounds
  * - Contextual sound effects
+ * - Procedural atmospheric layers that respond to game state
  * - Smooth transitions between states
  */
 
 import { ambientAudioService, AudioSettings } from './ambient-audio';
 import { AudioDiscovery, DiscoveredAudioFile } from './audio-discovery';
+import { ambientAtmosphere } from './ambient-atmosphere';
 import {
   AUDIO_ASSETS,
   MUSIC_PLAYLISTS,
@@ -70,6 +72,9 @@ export class AmbientExperienceManager {
         // Could generate simple tones using Web Audio API here if needed
       }
 
+      // Initialize the atmosphere system for game-responsive effects
+      await ambientAtmosphere.initialize();
+
       this.initialized = true;
     } catch (error) {
       console.warn('Failed to initialize ambient experience:', error);
@@ -89,6 +94,9 @@ export class AmbientExperienceManager {
     await this.startBackgroundMusic(mode);
     await this.startAmbientSounds(scene);
     this.setupMusicRotation();
+
+    // Start the procedural atmosphere system
+    await ambientAtmosphere.start();
 
     this.saveState();
     console.log(`🎵 Started ambient experience: ${mode} mode with ${scene} scene`);
@@ -113,6 +121,9 @@ export class AmbientExperienceManager {
       clearInterval(this.musicRotationTimer);
       this.musicRotationTimer = null;
     }
+
+    // Stop the atmosphere system
+    ambientAtmosphere.stop();
 
     this.currentState.musicTrack = null;
     this.currentState.ambientTracks = [];
@@ -280,10 +291,14 @@ export class AmbientExperienceManager {
 
   async onGameStart(): Promise<void> {
     await this.playEffect('game-start');
+    // Trigger atmosphere system for game start
+    await ambientAtmosphere.onGameEvent('game-start');
   }
 
   async onGameEnd(won: boolean): Promise<void> {
     await this.playEffect(won ? 'success' : 'move-invalid');
+    // Trigger atmosphere system for game end
+    await ambientAtmosphere.onGameEvent('game-end', { won });
   }
 
   async onValidMove(): Promise<void> {
@@ -292,6 +307,25 @@ export class AmbientExperienceManager {
 
   async onInvalidMove(): Promise<void> {
     await this.playEffect('move-invalid');
+  }
+
+  /**
+   * Additional game event methods for enhanced atmosphere
+   */
+  async onMove(context: { moveCount?: number, seedsLeft?: number, captureSize?: number }): Promise<void> {
+    await ambientAtmosphere.onGameEvent('move-made', context);
+  }
+
+  async onCapture(captureSize: number): Promise<void> {
+    await ambientAtmosphere.onGameEvent('capture-made', { captureSize });
+  }
+
+  async onCriticalMoment(): Promise<void> {
+    await ambientAtmosphere.onGameEvent('critical-moment');
+  }
+
+  async onThinkingMoment(): Promise<void> {
+    await ambientAtmosphere.onGameEvent('thinking-moment');
   }
 
   /**
