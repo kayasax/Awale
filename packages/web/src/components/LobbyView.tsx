@@ -90,9 +90,23 @@ export const LobbyView: React.FC<LobbyViewProps> = ({ onStartGame, onExit, serve
 
   const currentPlayer = ProfileService.getProfile();
   const onlinePlayers = lobbyState.players.filter(p => p.status !== 'offline');
-  const availablePlayers = onlinePlayers.filter(p =>
-    p.status === 'available' && p.id !== currentPlayer.id
+  
+  // More robust filtering - exclude current player by both ID and name
+  const otherPlayers = onlinePlayers.filter(p => 
+    p.id !== currentPlayer.id && p.name !== currentPlayer.name
   );
+  const availablePlayers = otherPlayers.filter(p => p.status === 'available');
+
+  // Debug logging (only show if there are issues)
+  if (otherPlayers.length !== (onlinePlayers.length - 1) || 
+      lobbyState.players.some(p => p.name === currentPlayer.name && p.id !== currentPlayer.id)) {
+    console.log('🐛 LobbyView Player Issue Detected:', {
+      currentPlayerId: currentPlayer.id,
+      currentPlayerName: currentPlayer.name,
+      duplicatesByName: lobbyState.players.filter(p => p.name === currentPlayer.name),
+      allPlayers: lobbyState.players.map(p => ({ id: p.id, name: p.name, status: p.status }))
+    });
+  }
 
   // Force re-render when lobby state changes
   if (!lobbyState.isConnected) {
@@ -175,7 +189,7 @@ export const LobbyView: React.FC<LobbyViewProps> = ({ onStartGame, onExit, serve
           </div>
 
           <div className="players-list">
-            {onlinePlayers.map(player => (
+            {otherPlayers.map(player => (
               <div key={player.id} className={`player-card ${player.status}`}>
                 <div className="player-info">
                   <div className="player-avatar">
@@ -193,7 +207,9 @@ export const LobbyView: React.FC<LobbyViewProps> = ({ onStartGame, onExit, serve
                     </div>
                   </div>
                 </div>
-                {player.status === 'available' && (
+                {player.status === 'available' && 
+                 player.id !== currentPlayer.id && 
+                 player.name !== currentPlayer.name && (
                   <button
                     className="btn btn-invite"
                     onClick={() => handleInvitePlayer(player)}

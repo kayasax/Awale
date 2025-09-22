@@ -325,7 +325,7 @@ export const OnlineGame: React.FC<Props> = ({
       const gameDuration = (gameEndTime - gameStartTime) / 1000; // Convert to seconds
       
       const ourRole = metaRef.current.role;
-      const isWinner = ourRole && snapshot.winner === (ourRole === 'host' ? 'A' : 'B');
+      const isWinner = ourRole ? (snapshot.winner === (ourRole === 'host' ? 'A' : 'B')) : false;
       const ourScore = ourRole === 'host' ? snapshot.captured.A : snapshot.captured.B;
       
       const gameResult = {
