@@ -33,6 +33,7 @@ export class PresenceService {
   private static listeners: Set<PresenceListener> = new Set();
   private static gameStartCallback: GameStartCallback | null = null;
   private static unsubscribe: (() => void) | null = null;
+  private static initialPlayerIds: Set<string> = new Set(); // Track initial players
 
   /**
    * Connect to lobby with current player profile
@@ -48,24 +49,46 @@ export class PresenceService {
     const profile = ProfileService.getProfile();
     this.client = new OnlineClient({ url: serverUrl });
 
+    // Set up reconnection handler
+    this.client.setOnReconnect(() => {
+      console.log('🌐 WebSocket reconnected, rejoining lobby...');
+      this.joinLobby();
+    });
+
     // Subscribe to messages
     this.unsubscribe = this.client.on((msg: ServerToClient) => {
       this.handleMessage(msg);
     });
 
-    // Connect and join lobby
+    // Connect and set up connection event handler
     this.client.connect();
 
-    // Wait a moment for connection, then join lobby
-    setTimeout(() => {
-      this.joinLobby();
-    }, 1000);
+    // Set up a connection check with better timing and timeout
+    let attemptCount = 0;
+    const maxAttempts = 50; // 5 seconds max wait
+    const checkConnectionAndJoin = () => {
+      attemptCount++;
+      if (this.client && this.client.isConnected()) {
+        console.log('🌐 WebSocket connected, joining lobby...');
+        this.joinLobby();
+      } else if (attemptCount < maxAttempts) {
+        // Retry after a shorter interval if not connected yet
+        setTimeout(checkConnectionAndJoin, 100);
+      } else {
+        console.warn('🌐 Failed to connect to lobby after', maxAttempts * 100, 'ms');
+      }
+    };
+
+    // Start checking connection after a brief delay
+    setTimeout(checkConnectionAndJoin, 200);
   }
 
   /**
    * Disconnect from lobby
    */
   static disconnect(): void {
+    console.log('🌐 Disconnecting from lobby...');
+    
     if (this.client) {
       this.sendMessage({ type: 'lobby', action: 'leave' });
       this.client.close();
@@ -77,13 +100,19 @@ export class PresenceService {
       this.unsubscribe = null;
     }
 
+    // Reset all state to clean slate
     this.state = {
       isConnected: false,
       players: [],
       messages: [],
-      pendingInvitations: []
+      pendingInvitations: [],
+      currentPlayer: undefined
     };
 
+    // Clear initial player tracking
+    this.initialPlayerIds.clear();
+
+    console.log('🌐 Lobby state reset');
     this.notifyListeners();
   }
 
@@ -92,6 +121,7 @@ export class PresenceService {
    */
   private static joinLobby(): void {
     const profile = ProfileService.getProfile();
+    console.log('🌐 Joining lobby with profile:', { id: profile.id, name: profile.name });
     this.sendMessage({
       type: 'lobby',
       action: 'join',
@@ -195,6 +225,25 @@ export class PresenceService {
   }
 
   /**
+   * Deduplicate players by ID
+   */
+  private static deduplicatePlayers(players: LobbyPlayer[]): LobbyPlayer[] {
+    const seen = new Set<string>();
+    const result: LobbyPlayer[] = [];
+    
+    for (const player of players) {
+      if (!seen.has(player.id)) {
+        seen.add(player.id);
+        result.push(player);
+      } else {
+        console.warn('🌐 Duplicate player detected and removed:', player.name, player.id);
+      }
+    }
+    
+    return result;
+  }
+
+  /**
    * Handle incoming WebSocket messages
    */
   private static handleMessage(msg: ServerToClient): void {
@@ -227,16 +276,23 @@ export class PresenceService {
 
     if (msg.type === 'lobby') {
       if ('players' in msg) {
-        // Initial lobby state
-        this.state.players = msg.players;
+        // Initial lobby state - apply deduplication
+        const uniquePlayers = this.deduplicatePlayers(msg.players);
+        this.state.players = uniquePlayers;
         this.state.messages = msg.messages || [];
         this.state.isConnected = true;
 
+        // Track initial player IDs to avoid duplicating them on player-joined events
+        this.initialPlayerIds.clear();
+        uniquePlayers.forEach(player => this.initialPlayerIds.add(player.id));
+
         // Find current player
         const profile = ProfileService.getProfile();
-        this.state.currentPlayer = msg.players.find(p => p.id === profile.id);
+        this.state.currentPlayer = uniquePlayers.find(p => p.id === profile.id);
 
-        console.log('🌐 Lobby joined successfully:', this.state.players.length, 'players online');
+        console.log('🌐 Lobby joined successfully:', uniquePlayers.length, 'players online');
+        console.log('🌐 Initial player IDs tracked:', Array.from(this.initialPlayerIds));
+        console.log('🌐 Player list:', uniquePlayers.map(p => ({ id: p.id, name: p.name, status: p.status })));
       } else if (msg.action) {
         this.handleLobbyAction(msg);
       }
@@ -251,8 +307,24 @@ export class PresenceService {
   private static handleLobbyAction(msg: any): void {
     switch (msg.action) {
       case 'player-joined':
-        this.state.players.push(msg.player);
-        console.log('🌐 Player joined:', msg.player.name);
+        // Skip if this player was in the initial lobby state (server sends both initial + joined)
+        if (this.initialPlayerIds.has(msg.player.id)) {
+          console.log('🌐 Ignoring player-joined for initial player:', msg.player.name);
+          break;
+        }
+        
+        // Check if player already exists to prevent duplicates
+        const existingPlayer = this.state.players.find(p => p.id === msg.player.id);
+        if (!existingPlayer) {
+          this.state.players.push(msg.player);
+          console.log('🌐 New player joined:', msg.player.name);
+        } else {
+          console.log('🌐 Player already exists, updating info:', msg.player.name);
+          // Update existing player info
+          Object.assign(existingPlayer, msg.player);
+        }
+        // Apply deduplication after any modifications
+        this.state.players = this.deduplicatePlayers(this.state.players);
         break;
 
       case 'player-left':
@@ -263,8 +335,12 @@ export class PresenceService {
       case 'player-status':
         const player = this.state.players.find(p => p.id === msg.playerId);
         if (player) {
+          const oldStatus = player.status;
           player.status = msg.status;
-          console.log('🌐 Player status updated:', player.name, msg.status);
+          if (msg.gameId) player.gameId = msg.gameId;
+          console.log('🌐 Player status updated:', player.name, `${oldStatus} → ${msg.status}`);
+        } else {
+          console.warn('🌐 Received status update for unknown player:', msg.playerId);
         }
         break;
 
@@ -313,13 +389,18 @@ export class PresenceService {
   }
 
   /**
-   * Notify all listeners of state changes
+   * Notify all listeners of state changes with validation
    */
   private static notifyListeners(): void {
+    // Final validation and deduplication before notifying
+    this.state.players = this.deduplicatePlayers(this.state.players);
+    
     console.log('🌐 Notifying listeners with state:', {
       isConnected: this.state.isConnected,
-      playersCount: this.state.players.length
+      playersCount: this.state.players.length,
+      playerSummary: this.state.players.map(p => ({ id: p.id, name: p.name, status: p.status }))
     });
+    
     this.listeners.forEach(listener => {
       try {
         listener(this.state);

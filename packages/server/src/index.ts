@@ -62,6 +62,28 @@ function broadcastToLobby(message: ServerToClient) {
 	}
 }
 
+// Lobby message broadcast excluding specific player
+function broadcastToLobbyExcluding(message: ServerToClient, excludePlayerId: string) {
+	const closedConnections: string[] = [];
+
+	for (const [playerId, connection] of lobbyConnections) {
+		if (playerId !== excludePlayerId) { // Skip the excluded player
+			if (connection.ws.readyState === WebSocket.OPEN) {
+				send(connection.ws, message);
+			} else {
+				// Mark for removal if WebSocket is closed
+				closedConnections.push(playerId);
+			}
+		}
+	}
+
+	// Clean up closed connections
+	for (const playerId of closedConnections) {
+		console.log('🌐 Cleaning up closed connection for player:', lobbyConnections.get(playerId)?.player.name);
+		lobbyConnections.delete(playerId);
+	}
+}
+
 // Clean up old lobby connections and invitations
 setInterval(() => {
 	const now = Date.now();
@@ -254,8 +276,8 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
 						const players = Array.from(lobbyConnections.values()).map(c => c.player);
 						send(ws, { type: 'lobby', players, messages: lobbyChatMessages.slice(-50) });
 
-						// Broadcast player joined to others
-						broadcastToLobby({ type: 'lobby', action: 'player-joined', player });
+						// Broadcast player joined to OTHER players only (exclude the joining player)
+						broadcastToLobbyExcluding({ type: 'lobby', action: 'player-joined', player }, player.id);
 						break;
 					}
 

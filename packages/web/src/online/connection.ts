@@ -12,9 +12,14 @@ export class OnlineClient {
   private url: string;
   private reconnectAttempts = 0;
   private manualClose = false;
+  private onReconnect?: () => void;
 
   constructor(cfg: OnlineConfig){
     this.url = cfg.url;
+  }
+
+  setOnReconnect(callback: () => void) {
+    this.onReconnect = callback;
   }
 
   connect() {
@@ -23,6 +28,13 @@ export class OnlineClient {
     this.ws = new WebSocket(this.url);
     this.ws.onopen = () => {
       console.log('✅ WebSocket connected');
+      
+      // If this is a reconnection, notify the callback
+      if (this.reconnectAttempts > 0 && this.onReconnect) {
+        console.log('🔄 WebSocket reconnected, notifying callback');
+        this.onReconnect();
+      }
+      
       this.reconnectAttempts = 0;
       // flush
       while (this.pending.length && this.ws?.readyState === WebSocket.OPEN) {
@@ -57,6 +69,10 @@ export class OnlineClient {
     this.manualClose = true;
     this.reconnectAttempts = 0; // Stop reconnection attempts
     this.ws?.close();
+  }
+
+  isConnected(): boolean {
+    return this.ws?.readyState === WebSocket.OPEN;
   }
 
   send(obj: any) {
