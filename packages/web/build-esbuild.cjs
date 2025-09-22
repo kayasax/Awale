@@ -60,17 +60,24 @@ fs.mkdirSync(assetsDir, { recursive: true });
   patched = patched.replace(/\/manifest.webmanifest/g, 'manifest.webmanifest');
   fs.writeFileSync(path.join(outDir, 'index.html'), patched, 'utf8');
 
-  // Copy public assets (if present) to dist root
+  // Copy public assets (if present) to dist root - including subdirectories
   const publicDir = path.join(__dirname, 'public');
   if (fs.existsSync(publicDir)) {
-    const entries = fs.readdirSync(publicDir);
-    for (const entry of entries) {
-      const src = path.join(publicDir, entry);
-      const dest = path.join(outDir, entry);
-      const stat = fs.statSync(src);
-      if (stat.isFile()) fs.copyFileSync(src, dest);
-      // (If needed later: recurse for subdirectories)
-    }
+    const copyDir = (src, dest) => {
+      if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
+      const entries = fs.readdirSync(src);
+      for (const entry of entries) {
+        const srcPath = path.join(src, entry);
+        const destPath = path.join(dest, entry);
+        const stat = fs.statSync(srcPath);
+        if (stat.isFile()) {
+          fs.copyFileSync(srcPath, destPath);
+        } else if (stat.isDirectory()) {
+          copyDir(srcPath, destPath);  // Recursively copy subdirectories
+        }
+      }
+    };
+    copyDir(publicDir, outDir);
   }
 
   // Copy CSS directly (already referenced in patched index.html)
