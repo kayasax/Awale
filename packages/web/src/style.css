@@ -1,5 +1,7 @@
 ﻿html { height:100%; }
 body { margin:0; }
+/* Stabilize viewport scroll chaining & overscroll on mobile */
+html, body { overscroll-behavior: contain; }
 
 /* Android-specific fixes for touch behavior */
 body {
@@ -347,7 +349,9 @@ header { margin-bottom: 1rem; }
 .theme-wood .pit .delta { text-shadow:0 1px 2px #2a1407; }
 
 /* Wood theme now shares global body background; remove overlay */
-.theme-wood { min-height:100vh; position:relative; color:#f8efe8; }
+.theme-wood { min-height:100dvh; min-height:100svh; min-height:100vh; position:relative; color:#f8efe8; }
+/* Ensure dark theme root also stabilizes height */
+.theme-dark { min-height:100dvh; min-height:100svh; min-height:100vh; position:relative; }
 /* Dark theme logo contrast tweak */
 .theme-dark .logo { color:#f0f3f5; text-shadow:0 2px 6px #000c; }
 .theme-wood::before, .theme-dark::before { /* subtle vignette & horizon haze */

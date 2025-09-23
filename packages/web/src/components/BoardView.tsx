@@ -110,6 +110,7 @@ interface PitProps {
 }
 
 const Pit: React.FC<PitProps> = ({ label, seeds, disabled, highlight, onClick, lastMove, captured, delta, pitRef }) => {
+  const touchStartRef = React.useRef<{x:number;y:number}|null>(null);
   const showDelta = delta && delta !== 0;
   const maxSeeds = 10;
   const seedVisuals = Array.from({length: Math.min(seeds, maxSeeds)});
@@ -130,19 +131,34 @@ const Pit: React.FC<PitProps> = ({ label, seeds, disabled, highlight, onClick, l
     return seedVariants[variantIndex];
   };
 
-  // Android-safe touch handling
+  // Enhanced Android-safe touch handling with movement threshold & synthetic click
   const handleTouchStart = (e: React.TouchEvent<HTMLButtonElement>) => {
-    if (!disabled && onClick) {
-      e.currentTarget.classList.add('pressed');
-    }
+    if (disabled || !onClick) return;
+    // Prevent potential scroll/viewport adjustments during press
+    if (e.cancelable) e.preventDefault();
+    const t = e.touches[0];
+    touchStartRef.current = { x: t.clientX, y: t.clientY };
+    e.currentTarget.classList.add('pressed');
   };
 
   const handleTouchEnd = (e: React.TouchEvent<HTMLButtonElement>) => {
     e.currentTarget.classList.remove('pressed');
+    const start = touchStartRef.current;
+    touchStartRef.current = null;
+    if (disabled || !onClick || !start) return;
+    if (e.cancelable) e.preventDefault();
+    const t = e.changedTouches[0];
+    const dx = t.clientX - start.x;
+    const dy = t.clientY - start.y;
+    if (Math.hypot(dx, dy) < 14) {
+      // Treat as a tap
+      onClick();
+    }
   };
 
   const handleTouchCancel = (e: React.TouchEvent<HTMLButtonElement>) => {
     e.currentTarget.classList.remove('pressed');
+    touchStartRef.current = null;
   };
 
   return (
