@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.1] - 2025-09-23
+### Fixed
+- Wood theme texture 404 on GitHub Pages by correcting relative CSS path (`./textures/wood.jpg` → `../textures/wood.jpg`) due to build output nesting (`assets/style.css`).
+
 ## [0.4.0] - 2025-09-23
 ### Added
 - Ambient visual atmosphere system: subtle dust motes, floating seeds, fireflies (with adaptive luminance and fullscreen support).
