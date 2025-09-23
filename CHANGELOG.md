@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.0] - 2025-09-23
+### Added
+- Ambient visual atmosphere system: subtle dust motes, floating seeds, fireflies (with adaptive luminance and fullscreen support).
+- Particle layer management with mood/event hooks (move-made, capture, game-start/end).
+- Wood theme pit carving refinements and texture integration improvements.
+- Resilience features: ResizeObserver-based canvas sizing, fullscreen promotion helper, persistent ambient reseeding.
+### Changed
+- Reduced console verbosity with tiered debug levels and on-demand visibility boost.
+- Balanced particle opacity and size for dark wood contrast.
+### Fixed
+- Canvas sizing sticking at initial small dimensions; now settles and tracks container expansion.
+- Intermittent loss of baseline ambient layers after hot reload.
+
 ## [0.2.0] - 2025-09-19
 ### Added
 - Animated sowing sequence with hand indicator; immediate audio feedback per seed.
