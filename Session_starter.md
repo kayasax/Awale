@@ -201,6 +201,7 @@
 | 2025-09-23 | ✨ **VISUAL ATMOSPHERE SYSTEM COMPLETE** - Canvas-based particle system with mood-responsive visual effects |
 | 2025-09-23 | 🌟 **PROCEDURAL VISUAL EFFECTS** - Floating particles, cultural elements, lighting effects that respond to game state |
 | 2025-09-23 | 🎯 **VISUAL-AUDIO INTEGRATION** - Visual atmosphere system integrated with existing audio system for complete immersion |
+| 2025-09-23 | 🪵 **WOOD TEXTURE FIX** - Corrected GitHub Pages 404 by adjusting CSS path from ./textures/wood.jpg to ../textures/wood.jpg due to build output directory structure (style.css in assets/). |
 | 2025-09-23 | 🎨 **USER PREFERENCE CONTROLS** - Visual effects toggle in profile settings, respects user choices across both AI and multiplayer modes |
 | 2025-12-19 | 🎯 **SEAMLESS INTEGRATION** - Profile system integrated into ModeSelector and main game flow |
 | 2025-09-18 | ✅ Project initialized with session continuity infrastructure |
