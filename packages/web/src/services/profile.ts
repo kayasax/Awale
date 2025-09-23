@@ -5,7 +5,7 @@
 
 export interface PlayerProfile {
   id: string;           // Unique persistent ID
-  name: string;         // Display name  
+  name: string;         // Display name
   avatar?: string;      // Base64 image or emoji/icon identifier
   createdAt: number;    // Profile creation timestamp
   stats: PlayerStats;
@@ -25,6 +25,7 @@ export interface PlayerPreferences {
   theme: 'dark' | 'wood';
   soundEnabled: boolean;
   animationsEnabled: boolean;
+  visualEffectsEnabled: boolean;
 }
 
 export interface GameResult {
@@ -43,7 +44,7 @@ const PROFILE_ID_KEY = 'awale-player-id'; // Keep existing for compatibility
  * Profile Storage Service - handles localStorage operations
  */
 export class ProfileService {
-  
+
   /**
    * Get the current player profile or create a new one
    */
@@ -53,19 +54,19 @@ export class ProfileService {
       if (stored) {
         const profile = JSON.parse(stored) as PlayerProfile;
         // Recalculate win rate in case of data inconsistency
-        profile.stats.winRate = profile.stats.gamesPlayed > 0 
-          ? (profile.stats.gamesWon / profile.stats.gamesPlayed) * 100 
+        profile.stats.winRate = profile.stats.gamesPlayed > 0
+          ? (profile.stats.gamesWon / profile.stats.gamesPlayed) * 100
           : 0;
         return profile;
       }
     } catch (error) {
       console.warn('Failed to load player profile:', error);
     }
-    
+
     // Create new profile
     return this.createNewProfile();
   }
-  
+
   /**
    * Create a new player profile with defaults
    */
@@ -76,11 +77,11 @@ export class ProfileService {
       playerId = 'player-' + Math.random().toString(36).substr(2, 8);
       localStorage.setItem(PROFILE_ID_KEY, playerId);
     }
-    
+
     // Generate a unique default name using the last 4 characters of the ID
     const uniqueSuffix = playerId.slice(-4).toUpperCase();
     const defaultName = `Player${uniqueSuffix}`;
-    
+
     const profile: PlayerProfile = {
       id: playerId,
       name: defaultName, // Unique default name based on player ID
@@ -96,14 +97,15 @@ export class ProfileService {
       preferences: {
         theme: 'dark',
         soundEnabled: true,
-        animationsEnabled: true
+        animationsEnabled: true,
+        visualEffectsEnabled: true
       }
     };
-    
+
     this.saveProfile(profile);
     return profile;
   }
-  
+
   /**
    * Save profile to localStorage
    */
@@ -116,7 +118,7 @@ export class ProfileService {
       console.error('Failed to save player profile:', error);
     }
   }
-  
+
   /**
    * Update profile name
    */
@@ -132,7 +134,7 @@ export class ProfileService {
     this.saveProfile(profile);
     return profile;
   }
-  
+
   /**
    * Update profile avatar
    */
@@ -142,7 +144,7 @@ export class ProfileService {
     this.saveProfile(profile);
     return profile;
   }
-  
+
   /**
    * Update player preferences
    */
@@ -152,13 +154,13 @@ export class ProfileService {
     this.saveProfile(profile);
     return profile;
   }
-  
+
   /**
    * Record a game result and update statistics
    */
   static recordGameResult(result: GameResult): PlayerProfile {
     const profile = this.getProfile();
-    
+
     // Update stats
     profile.stats.gamesPlayed++;
     if (result.won) {
@@ -166,35 +168,35 @@ export class ProfileService {
     }
     profile.stats.totalSeeds += result.seedsCaptured;
     profile.stats.lastPlayed = result.timestamp;
-    
+
     // Recalculate derived stats
     profile.stats.winRate = (profile.stats.gamesWon / profile.stats.gamesPlayed) * 100;
-    
+
     // Update average game time (rolling average)
     const currentAvg = profile.stats.averageGameTime;
     const gamesCount = profile.stats.gamesPlayed;
-    profile.stats.averageGameTime = gamesCount === 1 
+    profile.stats.averageGameTime = gamesCount === 1
       ? result.gameDuration
       : ((currentAvg * (gamesCount - 1)) + result.gameDuration) / gamesCount;
-    
+
     this.saveProfile(profile);
     return profile;
   }
-  
+
   /**
    * Get player ID (for compatibility with existing multiplayer system)
    */
   static getPlayerId(): string {
     return this.getProfile().id;
   }
-  
+
   /**
-   * Get player name (for compatibility with existing multiplayer system)  
+   * Get player name (for compatibility with existing multiplayer system)
    */
   static getPlayerName(): string {
     return this.getProfile().name;
   }
-  
+
   /**
    * Reset profile (for testing/development)
    */
@@ -203,7 +205,7 @@ export class ProfileService {
     localStorage.removeItem(PROFILE_ID_KEY);
     return this.createNewProfile();
   }
-  
+
   /**
    * Export profile as JSON (for backup/sharing)
    */
@@ -211,19 +213,19 @@ export class ProfileService {
     const profile = this.getProfile();
     return JSON.stringify(profile, null, 2);
   }
-  
+
   /**
    * Import profile from JSON (for backup/sharing)
    */
   static importProfile(profileJson: string): PlayerProfile {
     try {
       const profile = JSON.parse(profileJson) as PlayerProfile;
-      
+
       // Validate required fields
       if (!profile.id || !profile.name || !profile.stats || !profile.preferences) {
         throw new Error('Invalid profile format');
       }
-      
+
       // Ensure profile has all required fields with defaults
       const defaultStats: PlayerStats = {
         gamesPlayed: 0,
@@ -233,19 +235,20 @@ export class ProfileService {
         averageGameTime: 0,
         lastPlayed: undefined
       };
-      
+
       const defaultPreferences: PlayerPreferences = {
         theme: 'dark' as const,
         soundEnabled: true,
-        animationsEnabled: true
+        animationsEnabled: true,
+        visualEffectsEnabled: true
       };
-      
+
       const validatedProfile: PlayerProfile = {
         ...profile,
         stats: { ...defaultStats, ...profile.stats },
         preferences: { ...defaultPreferences, ...profile.preferences }
       };
-      
+
       this.saveProfile(validatedProfile);
       return validatedProfile;
     } catch (error) {

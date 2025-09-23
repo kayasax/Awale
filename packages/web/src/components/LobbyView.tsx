@@ -90,15 +90,15 @@ export const LobbyView: React.FC<LobbyViewProps> = ({ onStartGame, onExit, serve
 
   const currentPlayer = ProfileService.getProfile();
   const onlinePlayers = lobbyState.players.filter(p => p.status !== 'offline');
-  
+
   // More robust filtering - exclude current player by both ID and name
-  const otherPlayers = onlinePlayers.filter(p => 
+  const otherPlayers = onlinePlayers.filter(p =>
     p.id !== currentPlayer.id && p.name !== currentPlayer.name
   );
   const availablePlayers = otherPlayers.filter(p => p.status === 'available');
 
   // Debug logging (only show if there are issues)
-  if (otherPlayers.length !== (onlinePlayers.length - 1) || 
+  if (otherPlayers.length !== (onlinePlayers.length - 1) ||
       lobbyState.players.some(p => p.name === currentPlayer.name && p.id !== currentPlayer.id)) {
     console.log('🐛 LobbyView Player Issue Detected:', {
       currentPlayerId: currentPlayer.id,
@@ -207,8 +207,8 @@ export const LobbyView: React.FC<LobbyViewProps> = ({ onStartGame, onExit, serve
                     </div>
                   </div>
                 </div>
-                {player.status === 'available' && 
-                 player.id !== currentPlayer.id && 
+                {player.status === 'available' &&
+                 player.id !== currentPlayer.id &&
                  player.name !== currentPlayer.name && (
                   <button
                     className="btn btn-invite"

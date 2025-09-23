@@ -88,7 +88,7 @@ export class PresenceService {
    */
   static disconnect(): void {
     console.log('🌐 Disconnecting from lobby...');
-    
+
     if (this.client) {
       this.sendMessage({ type: 'lobby', action: 'leave' });
       this.client.close();
@@ -230,7 +230,7 @@ export class PresenceService {
   private static deduplicatePlayers(players: LobbyPlayer[]): LobbyPlayer[] {
     const seen = new Set<string>();
     const result: LobbyPlayer[] = [];
-    
+
     for (const player of players) {
       if (!seen.has(player.id)) {
         seen.add(player.id);
@@ -239,7 +239,7 @@ export class PresenceService {
         console.warn('🌐 Duplicate player detected and removed:', player.name, player.id);
       }
     }
-    
+
     return result;
   }
 
@@ -312,7 +312,7 @@ export class PresenceService {
           console.log('🌐 Ignoring player-joined for initial player:', msg.player.name);
           break;
         }
-        
+
         // Check if player already exists to prevent duplicates
         const existingPlayer = this.state.players.find(p => p.id === msg.player.id);
         if (!existingPlayer) {
@@ -394,13 +394,13 @@ export class PresenceService {
   private static notifyListeners(): void {
     // Final validation and deduplication before notifying
     this.state.players = this.deduplicatePlayers(this.state.players);
-    
+
     console.log('🌐 Notifying listeners with state:', {
       isConnected: this.state.isConnected,
       playersCount: this.state.players.length,
       playerSummary: this.state.players.map(p => ({ id: p.id, name: p.name, status: p.status }))
     });
-    
+
     this.listeners.forEach(listener => {
       try {
         listener(this.state);

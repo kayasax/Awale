@@ -173,6 +173,8 @@ header { margin-bottom: 1rem; }
 .btn:focus-visible { outline:2px solid #ffb300; outline-offset:2px; }
 
 .board-shell { position:relative; padding:1.2rem 1rem 1.5rem; background:linear-gradient(145deg,#1e2023,#24272b); border:1px solid #2f3439; border-radius:16px; box-shadow:0 6px 24px -8px #000d, 0 0 0 1px #262a2f inset; }
+/* Ensure atmosphere canvas sits above decorative backgrounds but below UI overlays */
+.visual-atmosphere-canvas { position:absolute !important; inset:0; z-index:6; pointer-events:none; }
 .board { gap:1rem; }
 .row { gap:1rem; }
 
@@ -213,50 +215,111 @@ header { margin-bottom: 1rem; }
 
 /* Wood Theme -------------------------------------------------------- */
 .theme-wood .board-shell {
-	background:
-		linear-gradient(145deg,#6d4925,#5a3c1d 55%, #4b3218 90%),
-		repeating-linear-gradient(25deg, #0000 0 10px, #00000008 10px 20px);
-	border:1px solid #3f2a15;
-	box-shadow:0 10px 28px -10px #000e, 0 0 0 1px #855d33 inset, 0 0 0 2px #0002 inset;
+  --wood-img:url(/textures/wood.jpg);
+  background:
+    radial-gradient(circle at 65% 28%, rgba(255,240,190,0.18), rgba(0,0,0,0) 60%),
+    var(--wood-img);
+  background-size:140% 140%, cover;
+  background-position:center;
+  background-blend-mode:overlay, multiply;
+  filter: sepia(.55) saturate(1.25) hue-rotate(-8deg) brightness(1.04);
+  border:1px solid #6d4825;
+  box-shadow:0 10px 30px -10px #000e, 0 0 0 1px #c08a52cc inset, 0 0 0 2px #0003 inset;
+  position:relative;
 }
-.theme-wood .board { gap:1rem; }
-.theme-wood .pit {
-	background:
-		radial-gradient(circle at 30% 28%, #7a5430, #5c3d1f 65%),
-		linear-gradient(160deg,#6d4825,#5b3b1d 70%);
-	border-color:#8d6035;
-	border-radius: 50% !important;
-	box-shadow: inset 0 3px 5px #0009, 0 2px 3px #000a, 0 0 0 1px #482c14, 0 0 8px -2px #000a;
-	color:#f8efea;
+
+/* Subtle rim light */
+.theme-wood .board-shell::before {
+  content:""; position:absolute; inset:0; border-radius:16px; pointer-events:none;
+  background:
+    linear-gradient(160deg, rgba(255,240,200,0.18), rgba(255,255,255,0) 55%),
+    radial-gradient(circle at 18% 20%, rgba(255,255,255,0.15), rgba(255,255,255,0) 60%);
+  mix-blend-mode:overlay; opacity:.9;
 }
-.theme-wood .row.opponent .pit {
-	background:
-		radial-gradient(circle at 60% 25%, #845b34, #5f411f 65%),
-		linear-gradient(155deg,#724c28,#5c3d1f 70%);
-	border-color:#9a6a3b;
-	border-radius: 50% !important;
+
+/* Carved pit redesign: unified texture + layered concave shading */
+.theme-wood .pit, .theme-wood .row.opponent .pit {
+  --wood-img:url(/textures/wood.jpg);
+  position:relative;
+  border-radius:50% !important;
+  border:2px solid #8d6035;
+  background:
+    radial-gradient(circle at 50% 56%, rgba(22,11,5,0.88) 0%, rgba(40,22,11,0.78) 28%, rgba(68,36,18,0.62) 50%, rgba(112,68,34,0.34) 70%, rgba(180,120,65,0.16) 82%, rgba(255,238,210,0.05) 95%), /* softened bowl, less harsh dark sector */
+    var(--wood-img);
+  background-size:160% 160%, cover;
+  background-position:center;
+  background-blend-mode:overlay, multiply;
+  filter: sepia(.55) saturate(1.15) hue-rotate(-5deg) brightness(.93);
+  box-shadow:
+    inset 0 4px 6px -2px #000a,
+    inset 0 -3px 6px -2px #3a1d0c,
+    0 2px 4px #0009,
+    0 0 0 1px #4a2b14,
+    0 0 10px -4px #000c;
+  color:#f8efe7;
 }
-.theme-wood .pit::before {
-	background:radial-gradient(circle at 35% 30%, #8a6036, #5a3b1d 70%);
-	opacity:.85;
-	box-shadow:inset 0 1px 2px #0006, inset 0 0 0 1px #734c28aa;
+/* Player (bottom) remains slightly warmer/lighter */
+.theme-wood .pit { filter: sepia(.58) saturate(1.18) hue-rotate(-7deg) brightness(.98); }
+/* Opponent pits: a touch darker + cooler for side distinction */
+.theme-wood .row.opponent .pit { filter: sepia(.48) saturate(1.0) hue-rotate(-2deg) brightness(.82) contrast(1.03); border-color:#7a5030; }
+
+/* Inner bowl + rim highlight */
+.theme-wood .pit::before, .theme-wood .row.opponent .pit::before {
+  content:""; position:absolute; inset:5px; border-radius:50%; pointer-events:none;
+  background:
+    radial-gradient(circle at 50% 62%, rgba(0,0,0,0.9) 0%, rgba(18,9,4,0.86) 34%, rgba(45,24,12,0.78) 55%, rgba(85,45,22,0.5) 72%, rgba(150,95,45,0.21) 84%, rgba(255,250,235,0.05) 96%),
+    repeating-conic-gradient(from 0deg at 50% 52%, rgba(255,255,255,0.02) 0deg 12deg, rgba(0,0,0,0) 12deg 36deg);
+  mix-blend-mode:overlay;
+  box-shadow: inset 0 3px 4px -2px #000d, inset 0 -6px 14px -6px #000d, inset 0 0 0 1px #5c361a55;
 }
-.theme-wood .pit.highlight::before {
-	inset: 4px; /* More inset to avoid covering the outline */
-	z-index: -1; /* Behind the outline */
+/* Directional rim highlight (light top-left, shadow bottom-right) */
+.theme-wood .pit::after, .theme-wood .row.opponent .pit::after {
+  content:""; position:absolute; inset:0; border-radius:50%; pointer-events:none;
+  background:
+    radial-gradient(circle at 50% 58%, rgba(0,0,0,0.34) 48%, rgba(0,0,0,0) 72%), /* softer inner shadow */
+    radial-gradient(circle at 30% 28%, rgba(255,255,255,0.28), rgba(255,255,255,0) 52%), /* subtle top-left highlight */
+    radial-gradient(circle at 72% 70%, rgba(255,228,190,0.14), rgba(255,228,190,0) 55%), /* added bottom-right lift to remove dark arc */
+    linear-gradient(145deg, rgba(255,255,255,0.26) 0%, rgba(255,255,255,0.1) 42%, rgba(0,0,0,0.32) 72%, rgba(0,0,0,0.38) 90%); /* gentle directional shade */
+  mix-blend-mode:overlay;
+  opacity:.5;
+  filter: blur(.2px); /* soften any residual banding */
 }
-.theme-wood .pit.empty { background:linear-gradient(155deg,#7a5430,#5c3d1f); }
-.theme-wood .pit.empty::before { opacity:.4; }
-.theme-wood .pit.last-move { box-shadow:0 0 0 3px #ffcc5a, 0 0 10px -2px #ffcc5aaa, inset 0 2px 4px #0008; }
-.theme-wood .pit.highlight {
-	outline-color:#ffcc5a;
-	box-shadow: 0 0 0 3px #ffcc5a, inset 0 2px 4px #0008;
-	z-index: 10;
+
+/* Player pits (non-opponent row): slightly lighter interior while keeping rim depth */
+.theme-wood .row:not(.opponent) .pit {
+  background:
+    radial-gradient(circle at 50% 60%, rgba(40,22,11,0.72) 0%, rgba(60,32,15,0.62) 28%, rgba(90,50,25,0.45) 54%, rgba(150,95,50,0.30) 74%, rgba(210,150,95,0.18) 86%, rgba(255,242,220,0.09) 95%),
+    var(--wood-img);
+  background-size:150% 150%, cover;
+  filter: sepia(.55) saturate(1.15) hue-rotate(-6deg) brightness(1.10);
 }
-.theme-wood .pit.captured::after, .theme-wood .pit.captured::before { filter:brightness(1.25) saturate(1.15); }
-.theme-wood .seed { background:radial-gradient(circle at 30% 30%, #f3e0b5, #b1874a); z-index: 1; }
-.theme-wood .seeds-list { z-index: 1; }
-.theme-wood .seeds-count { background:#362214dc; border-color:#7a5330; color:#ffe9d1; }
+.theme-wood .row:not(.opponent) .pit::before {
+  background:
+    radial-gradient(circle at 50% 62%, rgba(20,10,5,0.82) 0%, rgba(38,20,10,0.74) 34%, rgba(60,32,16,0.58) 56%, rgba(95,55,28,0.42) 74%, rgba(155,100,55,0.22) 84%, rgba(255,245,225,0.07) 95%),
+    repeating-conic-gradient(from 0deg at 50% 52%, rgba(255,255,255,0.035) 0deg 12deg, rgba(0,0,0,0) 12deg 36deg);
+}
+.theme-wood .row:not(.opponent) .pit::after { opacity:.55; }
+.theme-wood .row:not(.opponent) .pit::after {
+  background:
+    radial-gradient(circle at 50% 58%, rgba(0,0,0,0.30) 50%, rgba(0,0,0,0) 74%),
+    radial-gradient(circle at 28% 26%, rgba(255,255,255,0.32), rgba(255,255,255,0) 54%),
+    radial-gradient(circle at 72% 69%, rgba(255,232,200,0.18), rgba(255,232,200,0) 58%),
+    linear-gradient(145deg, rgba(255,255,255,0.34) 0%, rgba(255,255,255,0.14) 40%, rgba(0,0,0,0.28) 72%, rgba(0,0,0,0.34) 90%);
+  opacity:.48;
+}
+
+.theme-wood .pit.empty { filter: sepia(.52) saturate(1.05) hue-rotate(-5deg) brightness(.85); }
+.theme-wood .pit.empty::before { opacity:.55; }
+
+.theme-wood .pit.last-move { box-shadow:0 0 0 3px #ffcc5a, 0 0 10px -2px #ffcc5aaa, inset 0 3px 6px #0009; }
+.theme-wood .pit.highlight { outline-color:#ffcc5a; box-shadow:0 0 0 3px #ffcc5a, inset 0 3px 6px #0009; z-index:10; }
+.theme-wood .pit.captured::before { filter:brightness(1.15) saturate(1.15); }
+.theme-wood .pit.captured::after { filter:brightness(1.1); }
+
+/* Seeds contrast adjustments inside carved bowl */
+.theme-wood .seed { background:radial-gradient(circle at 30% 30%, #f4e6c1, #b68a4f); }
+.theme-wood .seeds-list { z-index:2; }
+.theme-wood .seeds-count { background:#2e190cdd; border-color:#7a5330; color:#ffe9d1; }
 .theme-wood .scores .score { background:#714b27; box-shadow:0 1px 2px #0009 inset, 0 0 0 1px #55371c; }
 .theme-wood .scores .score.you { color:#d6ffdc; }
 .theme-wood .scores .score.ai { color:#ffe8b2; }
@@ -302,9 +365,16 @@ header { margin-bottom: 1rem; }
 /* Slight darkening behind board for readability */
 .theme-wood .board-shell { -webkit-backdrop-filter:blur(1px) brightness(.96); backdrop-filter:blur(1px) brightness(.96); }
 .theme-dark .board-shell {
-	background: linear-gradient(145deg, #4a4d52, #555964);
-	border-color: #5f656c;
-	box-shadow: 0 6px 24px -8px #000b, 0 0 0 1px #5a6067 inset;
+  --wood-img:url(/textures/wood.jpg);
+  background:
+    radial-gradient(circle at 50% 55%, rgba(255,255,255,0.05), rgba(0,0,0,0.55) 80%),
+    var(--wood-img);
+  background-size:130% 130%, cover;
+  background-position:center;
+  background-blend-mode:overlay, multiply;
+  filter: sepia(.3) saturate(.55) brightness(.80) hue-rotate(10deg) contrast(1.05);
+  border-color:#5f656c;
+  box-shadow:0 6px 24px -8px #000b, 0 0 0 1px #5a6067 inset;
 }
 
 /* Footer */
@@ -1330,36 +1400,59 @@ footer.site-footer a:hover { text-decoration:underline; }
 .theme-dark .pit,
 body.theme-dark .pit,
 html.theme-dark .pit {
-	background: radial-gradient(circle at 50% 50%, #3d3d3d 0%, #4a4a4a 30%, #565656 60%, #636363 100%) !important;
-	border: 2px solid #4a4a4a !important;
-	border-radius: 50% !important;
-	box-shadow:
-		inset 0 6px 12px rgba(0,0,0,0.6),
-		inset 0 3px 6px rgba(0,0,0,0.4),
-		inset 0 0 0 1px rgba(255,255,255,0.1),
-		0 0 2px rgba(255, 255, 255, 0.3) !important;
+  position:relative;
+  background:
+    radial-gradient(circle at 50% 58%, #121213 0%, #1c1d1e 35%, #303234 60%, #44474a 78%, #575b5f 100%) !important;
+  border: 2px solid #555b60 !important;
+  border-radius: 50% !important;
+  box-shadow:
+    inset 0 4px 6px -2px #000c,
+    inset 0 -5px 10px -4px #000c,
+    inset 0 0 0 1px rgba(255,255,255,0.08),
+    0 1px 3px rgba(0,0,0,0.6) !important;
 }
 
 .theme-dark .row.opponent .pit,
 body.theme-dark .row.opponent .pit,
 html.theme-dark .row.opponent .pit {
-	background: radial-gradient(circle at 50% 50%, #656565 0%, #727272 30%, #7f7f7f 60%, #8c8c8c 100%) !important;
-	border: 2px solid #727272 !important;
-	border-radius: 50% !important;
-	box-shadow:
-		inset 0 4px 8px rgba(0,0,0,0.5),
-		inset 0 2px 4px rgba(0,0,0,0.3),
-		inset 0 0 0 1px rgba(255,255,255,0.15),
-		0 0 3px rgba(255, 255, 255, 0.4) !important;
+  position:relative;
+  background:
+    radial-gradient(circle at 50% 60%, #141516 0%, #202122 36%, #35373a 63%, #4d5155 82%, #5e6368 100%) !important;
+  border: 2px solid #63696f !important;
+  border-radius: 50% !important;
+  box-shadow:
+    inset 0 3px 6px -2px #000c,
+    inset 0 -5px 12px -5px #000c,
+    inset 0 0 0 1px rgba(255,255,255,0.1),
+    0 1px 3px rgba(0,0,0,0.55) !important;
 }
 
+/* Dark theme inner bowl & rim for concave look */
 .theme-dark .pit::before,
 body.theme-dark .pit::before,
 html.theme-dark .pit::before,
 .theme-dark .row.opponent .pit::before,
 body.theme-dark .row.opponent .pit::before,
 html.theme-dark .row.opponent .pit::before {
-	display: none !important;
+  content:""; position:absolute; inset:5px; border-radius:50%; pointer-events:none;
+  background:
+    radial-gradient(circle at 50% 60%, rgba(0,0,0,0.82) 0%, rgba(20,20,22,0.78) 42%, rgba(60,62,66,0.45) 68%, rgba(120,125,130,0.12) 85%, rgba(255,255,255,0.05) 96%),
+    conic-gradient(from 220deg at 50% 50%, rgba(255,255,255,0.35) 0deg, rgba(255,255,255,0.1) 60deg, rgba(0,0,0,0.55) 190deg, rgba(0,0,0,0.65) 240deg, rgba(255,255,255,0.25) 320deg, rgba(255,255,255,0) 360deg);
+  mix-blend-mode:overlay;
+  box-shadow: inset 0 2px 3px -1px #000c, inset 0 -5px 10px -5px #000c, inset 0 0 0 1px #4a4f55aa;
+  opacity:.95;
+}
+.theme-dark .pit::after,
+body.theme-dark .pit::after,
+html.theme-dark .pit::after,
+.theme-dark .row.opponent .pit::after,
+body.theme-dark .row.opponent .pit::after,
+html.theme-dark .row.opponent .pit::after {
+  content:""; position:absolute; inset:0; border-radius:50%; pointer-events:none;
+  background:
+    radial-gradient(circle at 50% 55%, rgba(0,0,0,0.55) 62%, rgba(0,0,0,0) 74%);
+  mix-blend-mode:overlay;
+  opacity:.5;
 }
 
 /* Dark theme seed styling with fancy SVGs */

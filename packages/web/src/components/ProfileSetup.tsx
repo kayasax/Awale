@@ -12,17 +12,18 @@ interface ProfileSetupProps {
  * Profile Setup Component
  * Allows users to create or edit their player profile
  */
-export const ProfileSetup: React.FC<ProfileSetupProps> = ({ 
-  onComplete, 
-  onCancel, 
-  existingProfile, 
-  isModal = false 
+export const ProfileSetup: React.FC<ProfileSetupProps> = ({
+  onComplete,
+  onCancel,
+  existingProfile,
+  isModal = false
 }) => {
   const [name, setName] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState('🎮');
   const [theme, setTheme] = useState<'dark' | 'wood'>('dark');
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [animationsEnabled, setAnimationsEnabled] = useState(true);
+  const [visualEffectsEnabled, setVisualEffectsEnabled] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
   // Initialize with existing profile data
@@ -33,6 +34,7 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({
       setTheme(existingProfile.preferences.theme);
       setSoundEnabled(existingProfile.preferences.soundEnabled);
       setAnimationsEnabled(existingProfile.preferences.animationsEnabled);
+      setVisualEffectsEnabled(existingProfile.preferences.visualEffectsEnabled ?? true);
     } else {
       // Load current profile if editing
       const currentProfile = ProfileService.getProfile();
@@ -41,6 +43,7 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({
       setTheme(currentProfile.preferences.theme);
       setSoundEnabled(currentProfile.preferences.soundEnabled);
       setAnimationsEnabled(currentProfile.preferences.animationsEnabled);
+      setVisualEffectsEnabled(currentProfile.preferences.visualEffectsEnabled ?? true);
     }
   }, [existingProfile]);
 
@@ -51,7 +54,7 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({
     }
 
     setIsLoading(true);
-    
+
     try {
       // Update profile with new data
       let profile = ProfileService.updateName(name);
@@ -59,9 +62,10 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({
       profile = ProfileService.updatePreferences({
         theme,
         soundEnabled,
-        animationsEnabled
+        animationsEnabled,
+        visualEffectsEnabled
       });
-      
+
       if (onComplete) {
         onComplete(profile);
       }
@@ -73,15 +77,15 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({
     }
   };
 
-  const containerClass = isModal 
-    ? 'profile-setup-modal' 
+  const containerClass = isModal
+    ? 'profile-setup-modal'
     : 'profile-setup-page';
 
   return (
     <div className={containerClass}>
       <div className="profile-setup-content">
         <h2>✨ Player Profile</h2>
-        
+
         {/* Player Name */}
         <div className="profile-field">
           <label htmlFor="player-name">Player Name</label>
@@ -147,7 +151,7 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({
               />
               <span>🔊 Sound Effects</span>
             </label>
-            
+
             <label className="checkbox-label">
               <input
                 type="checkbox"
@@ -155,6 +159,15 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({
                 onChange={(e) => setAnimationsEnabled(e.target.checked)}
               />
               <span>✨ Animations</span>
+            </label>
+
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={visualEffectsEnabled}
+                onChange={(e) => setVisualEffectsEnabled(e.target.checked)}
+              />
+              <span>🌟 Visual Effects</span>
             </label>
           </div>
         </div>
@@ -186,35 +199,35 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({
 };
 
 /**
- * Profile Display Component 
+ * Profile Display Component
  * Shows player profile information in a compact format
  */
-export const ProfileDisplay: React.FC<{ profile: PlayerProfile; className?: string }> = ({ 
-  profile, 
-  className = '' 
+export const ProfileDisplay: React.FC<{ profile: PlayerProfile; className?: string }> = ({
+  profile,
+  className = ''
 }) => {
   const { stats } = profile;
-  
+
   return (
     <div className={`profile-display ${className}`}>
       <div className="profile-header">
         <span className="profile-avatar">{profile.avatar || '🎮'}</span>
         <span className="profile-name">{profile.name}</span>
       </div>
-      
+
       <div className="profile-stats">
         <div className="stat-item">
           <span className="stat-label">Games:</span>
           <span className="stat-value">{stats.gamesPlayed}</span>
         </div>
-        
+
         {stats.gamesPlayed > 0 && (
           <>
             <div className="stat-item">
               <span className="stat-label">Wins:</span>
               <span className="stat-value">{stats.gamesWon}</span>
             </div>
-            
+
             <div className="stat-item">
               <span className="stat-label">Win Rate:</span>
               <span className="stat-value">{Math.round(stats.winRate)}%</span>
@@ -230,8 +243,8 @@ export const ProfileDisplay: React.FC<{ profile: PlayerProfile; className?: stri
  * Mini Profile Component
  * Compact profile display for navigation/header areas
  */
-export const MiniProfile: React.FC<{ 
-  profile: PlayerProfile; 
+export const MiniProfile: React.FC<{
+  profile: PlayerProfile;
   onClick?: () => void;
   className?: string;
 }> = ({ profile, onClick, className = '' }) => {

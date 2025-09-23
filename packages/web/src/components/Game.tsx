@@ -4,6 +4,7 @@ import { createInitialState, applyMove, getLegalMoves, formatBoard } from '../..
 import { greedyStrategy } from '../../../core/src/ai/greedy';
 import { ProfileService } from '../services/profile';
 import { ambientExperience } from '../services/ambient-experience';
+import { visualAtmosphere } from '../services/visual-atmosphere';
 import { AudioControls } from './AudioControls';
 import type { GameState } from '../../../shared/src/types';
 
@@ -58,14 +59,40 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
   const [muted, setMuted] = useState(false);
   const [theme, setTheme] = useState<'dark'|'wood'>(playerProfile.preferences.theme);
 
+  // Container ref for visual atmosphere
+  const containerRef = useRef<HTMLDivElement>(null);
+
   // Load user preferences on mount and initialize ambient experience
   useEffect(() => {
     const profile = ProfileService.getProfile();
     setTheme(profile.preferences.theme);
     setMuted(!profile.preferences.soundEnabled);
 
-    // Initialize ambient experience
+    // Initialize ambient experience (audio)
     ambientExperience.initialize();
+
+    // Initialize visual atmosphere with container reference
+    // Use setTimeout to ensure DOM is fully rendered
+    const initVisualAtmosphere = () => {
+      if (containerRef.current) {
+        console.log('✨ Initializing visual atmosphere with container ref');
+        visualAtmosphere.initialize(containerRef.current);
+      } else {
+        console.log('✨ Initializing visual atmosphere without container ref (DOM search)');
+        visualAtmosphere.initialize();
+      }
+
+      // Check visual effects preference and force enable for debugging
+      const visualEnabled = profile.preferences.visualEffectsEnabled;
+      console.log('✨ Visual effects preference:', visualEnabled);
+
+      // Force start visual atmosphere for debugging (temporarily ignore preference)
+      console.log('✨ Force starting visual atmosphere for debugging...');
+      visualAtmosphere.start();
+    };
+
+    // Delay initialization slightly to ensure DOM is ready
+    setTimeout(initVisualAtmosphere, 100);
 
     // Start ambient experience if enabled
     if (profile.preferences.soundEnabled) {
@@ -75,28 +102,39 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
     return () => {
       // Cleanup ambient experience when component unmounts
       ambientExperience.stop();
+      visualAtmosphere.stop();
     };
   }, []);
 
-  // Enhanced audio function using ambient experience
+  // Enhanced audio and visual function using ambient experience
   function playGameSound(kind: 'drop'|'capture'|'end'|'start'|'move'|'invalid') {
     if (muted) return;
+
+    // Get current profile for visual effects preference check
+    const currentProfile = ProfileService.getProfile();
+    const visualEnabled = currentProfile.preferences.visualEffectsEnabled;
 
     switch (kind) {
       case 'drop':
         ambientExperience.onSeedDrop();
+        if (visualEnabled) visualAtmosphere.onGameEvent('move-made');
         break;
       case 'capture':
         ambientExperience.onSeedCapture();
+        if (visualEnabled) visualAtmosphere.onGameEvent('capture-made', { captureSize: 1 });
         break;
       case 'end':
-        ambientExperience.onGameEnd(view.state.winner === 'A');
+        const won = view.state.winner === 'A';
+        ambientExperience.onGameEnd(won);
+        if (visualEnabled) visualAtmosphere.onGameEvent('game-end', { won });
         break;
       case 'start':
         ambientExperience.onGameStart();
+        if (visualEnabled) visualAtmosphere.onGameEvent('game-start');
         break;
       case 'move':
         ambientExperience.onValidMove();
+        if (visualEnabled) visualAtmosphere.onGameEvent('move-made');
         break;
       case 'invalid':
         ambientExperience.onInvalidMove();
@@ -166,19 +204,39 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
             for (let p=6;p<12;p++) if (beforeState.pits[p] > 0 && newState.pits[p] === 0) capturedPits.push(p);
           }
           setView(v => ({ ...v, prevPits: before, state: newState, thinking: true, message, lastMovePit: pit, lastCapturedPits: capturedPits }));
-          
-          // Trigger atmosphere system for player move
+
+          // Trigger atmosphere system for player move (both audio and visual)
           const moveCount = (before.reduce((sum, seeds) => sum + seeds, 0) - newState.pits.reduce((sum, seeds) => sum + seeds, 0)) / 2;
           const totalSeeds = newState.pits.reduce((sum, seeds) => sum + seeds, 0);
+
+          // Audio atmosphere
           ambientExperience.onMove({ moveCount, seedsLeft: totalSeeds, captureSize: result.capturedThisMove });
-          
+
+          // Visual atmosphere (only if enabled)
+          const currentProfile = ProfileService.getProfile();
+          if (currentProfile.preferences.visualEffectsEnabled) {
+            visualAtmosphere.onGameEvent('move-made', {
+              moveCount,
+              seedsLeft: totalSeeds,
+              captureSize: result.capturedThisMove
+            });
+          }
+
           if (result.capturedThisMove) {
             ambientExperience.onCapture(result.capturedThisMove);
+            if (currentProfile.preferences.visualEffectsEnabled) {
+              visualAtmosphere.onGameEvent('capture-made', {
+                captureSize: result.capturedThisMove
+              });
+            }
           }
-          
+
           // Check for critical moments (low seeds remaining)
           if (totalSeeds < 15) {
             ambientExperience.onCriticalMoment();
+            if (currentProfile.preferences.visualEffectsEnabled) {
+              visualAtmosphere.onGameEvent('critical-moment');
+            }
           }
         } catch(e:any) {
           setView(v => ({ ...v, message: 'Invalid move: ' + e.message }));
@@ -235,12 +293,12 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
             for (let p=0;p<6;p++) if (beforeState.pits[p] > 0 && newState.pits[p] === 0) capturedPits.push(p);
           }
           setView(v => ({ ...v, prevPits: before, state: newState, thinking: false, message, lastMovePit: pit, lastCapturedPits: capturedPits }));
-          
+
           // Trigger atmosphere system for AI move
           const moveCount = (before.reduce((sum, seeds) => sum + seeds, 0) - newState.pits.reduce((sum, seeds) => sum + seeds, 0)) / 2;
           const totalSeeds = newState.pits.reduce((sum, seeds) => sum + seeds, 0);
           ambientExperience.onMove({ moveCount, seedsLeft: totalSeeds, captureSize: result.capturedThisMove });
-          
+
           if (result.capturedThisMove) {
             ambientExperience.onCapture(result.capturedThisMove);
             if (result.capturedThisMove > 8) {
@@ -248,7 +306,7 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
               ambientExperience.onCriticalMoment();
             }
           }
-          
+
           if (result.capturedThisMove) playGameSound('capture');
           if (newState.ended) playGameSound('end');
         } catch(e:any) {
@@ -277,7 +335,7 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
     if (!animating && view.state.currentPlayer === 'B') {
       // Trigger thinking atmosphere when AI starts contemplating
       ambientExperience.onThinkingMoment();
-      
+
       const t = setTimeout(() => {
         try {
           const aiMove = greedyStrategy.chooseMove(view.state);
@@ -350,7 +408,7 @@ export const Game: React.FC<GameProps> = ({ onExit }) => {
   // Apply background image via CSS variable to satisfy lint rule
   const containerClass = "awale-container theme-"+theme;
   return (
-  <div className={containerClass}>
+  <div className={containerClass} ref={containerRef}>
       {/* Controls at the top */}
       <div className="controls">
         {onExit && <button className="btn" onClick={onExit}>Home</button>}

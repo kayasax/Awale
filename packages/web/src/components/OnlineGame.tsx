@@ -1,6 +1,7 @@
 ﻿import React, { useEffect, useRef, useState } from 'react';
 import { OnlineClient } from '../online/connection';
 import { ProfileService } from '../services/profile';
+import { visualAtmosphere } from '../services/visual-atmosphere';
 import type { GameStateSnapshot, ServerToClient } from '../online/protocol';
 import { Game } from './Game';
 import { BoardView } from './BoardView';
@@ -32,29 +33,29 @@ interface AnimationState {
 }
 
 // Reuse local Game component for rendering board, but we'll override state transitions later.
-export const OnlineGame: React.FC<Props> = ({ 
-  mode, 
-  code, 
-  name: propName, 
-  playerName, 
-  playerId, 
-  onExit, 
-  serverUrl 
+export const OnlineGame: React.FC<Props> = ({
+  mode,
+  code,
+  name: propName,
+  playerName,
+  playerId,
+  onExit,
+  serverUrl
 }) => {
   // Get player profile and use the actual player name
   const profile = ProfileService.getProfile();
   const finalPlayerName = playerName || propName || profile.name || 'Player';
   const finalPlayerId = playerId || profile.id;
-  
+
   const clientRef = useRef<OnlineClient | null>(null);
   const metaRef = useRef<LocalMeta>({});
   const boardRef = useRef<HTMLDivElement | null>(null);
   const pitRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  
+
   // Track reconnection attempts to prevent infinite loop
   const reconnectAttempts = useRef(0);
   const MAX_RECONNECT_ATTEMPTS = 3;
-  
+
   // State
   const [meta, setMeta] = useState<LocalMeta>({});
   const [snapshot, setSnapshot] = useState<GameStateSnapshot | null>(null);
@@ -66,14 +67,25 @@ export const OnlineGame: React.FC<Props> = ({
   const [muted, setMuted] = useState(false);
   const [theme, setTheme] = useState<'dark'|'wood'>(profile.preferences.theme);
   const [bothPlayersConnected, setBothPlayersConnected] = useState(false);
-  
-  // Load user preferences on mount
+
+  // Load user preferences on mount and initialize atmosphere
   useEffect(() => {
     const userProfile = ProfileService.getProfile();
     setTheme(userProfile.preferences.theme);
     setMuted(!userProfile.preferences.soundEnabled);
+
+    // Initialize visual atmosphere for online game (if enabled by user preferences)
+    visualAtmosphere.initialize();
+    if (userProfile.preferences.visualEffectsEnabled) {
+      visualAtmosphere.start();
+    }
+
+    return () => {
+      // Cleanup visual atmosphere when component unmounts
+      visualAtmosphere.stop();
+    };
   }, []);
-  
+
   // Animation state for visual polish
   const [animState, setAnimState] = useState<AnimationState>({
     animating: false,
@@ -91,7 +103,7 @@ export const OnlineGame: React.FC<Props> = ({
   // Audio system (matching single-player)
   const audioCtxRef = useRef<AudioContext | null>(null);
   const audioReadyRef = useRef(false);
-  
+
   // Helper function to set messages with success state
   const setSuccessMessage = (msg: string, duration = 3000) => {
     setMessage(msg);
@@ -108,7 +120,7 @@ export const OnlineGame: React.FC<Props> = ({
     setMessage(msg);
     setIsSuccessMessage(false);
   };
-  
+
   useEffect(() => {
     if (audioReadyRef.current) return;
     if (typeof window === 'undefined') return;
@@ -131,7 +143,7 @@ export const OnlineGame: React.FC<Props> = ({
 
   function playTone(kind: 'drop'|'capture'|'end') {
     if (muted) return;
-    const ctx = audioCtxRef.current; 
+    const ctx = audioCtxRef.current;
     if (!ctx) return;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -162,9 +174,9 @@ export const OnlineGame: React.FC<Props> = ({
     const boardRect = boardRef.current.getBoundingClientRect();
     setAnimState(prev => ({
       ...prev,
-      handPos: { 
-        x: rect.left - boardRect.left + rect.width/2, 
-        y: rect.top - boardRect.top + rect.height/2 
+      handPos: {
+        x: rect.left - boardRect.left + rect.width/2,
+        y: rect.top - boardRect.top + rect.height/2
       }
     }));
   }
@@ -174,7 +186,7 @@ export const OnlineGame: React.FC<Props> = ({
     if (clientRef.current) {
       clientRef.current.close();
     }
-    
+
     const client = new OnlineClient({ url: serverUrl });
     clientRef.current = client;
     const off = client.on((msg: ServerToClient) => {
@@ -202,17 +214,23 @@ export const OnlineGame: React.FC<Props> = ({
           console.log('🎲 Game starting with random selection:', msg);
           const startingPlayerName = msg.startingPlayer === ourRole ? finalPlayerName : opponentName;
           const isYourTurn = msg.startingPlayer === ourRole;
-          const startMessage = isYourTurn 
+          const startMessage = isYourTurn
             ? '🎲 You have been randomly selected to start! Make your first move.'
             : `🎲 ${startingPlayerName} has been randomly selected to start.`;
           setSuccessMessage(startMessage, 4000); // Show for 4 seconds
+
+          // Trigger visual atmosphere for game start (only if enabled)
+          const profileAtStart = ProfileService.getProfile();
+          if (profileAtStart.preferences.visualEffectsEnabled) {
+            visualAtmosphere.onGameEvent('game-start');
+          }
           break;
         case 'state':
           console.log('📊 State received for gameId:', msg.gameId, 'current tracked gameId:', metaRef.current.gameId);
-          console.log('🎮 Game state:', { 
-            currentPlayer: msg.state.currentPlayer, 
-            ourRole: metaRef.current.role, 
-            ourSide: metaRef.current.role === 'host' ? 'A' : 'B' 
+          console.log('🎮 Game state:', {
+            currentPlayer: msg.state.currentPlayer,
+            ourRole: metaRef.current.role,
+            ourSide: metaRef.current.role === 'host' ? 'A' : 'B'
           });
           setSnapshot(msg.state);
           break;
@@ -221,10 +239,10 @@ export const OnlineGame: React.FC<Props> = ({
           if (snapshot && msg.pit !== undefined) {
             // Always animate moves for both players
             animateMove(msg.pit, snapshot.pits);
-            
+
             const prevPits = snapshot.pits.slice();
             const capturedCount = msg.captured || 0;
-            
+
             // Detect captured pits for visual effects
             let capturedPits: number[] = [];
             if (capturedCount > 0) {
@@ -232,18 +250,33 @@ export const OnlineGame: React.FC<Props> = ({
               const opponentSide = msg.player === 'host' ? [6,7,8,9,10,11] : [0,1,2,3,4,5];
               capturedPits = opponentSide.filter(p => prevPits[p] > 0 && prevPits[p] === 0);
             }
-            
-            setAnimState(prev => ({ 
-              ...prev, 
+
+            setAnimState(prev => ({
+              ...prev,
               prevPits,
               lastMovePit: msg.pit,
               lastCapturedPits: capturedPits
             }));
-            
+
             // Play sounds for all moves
             playTone('drop');
+
+            // Trigger visual atmosphere for moves (only if enabled)
+            const profileForMove = ProfileService.getProfile();
+            const totalSeeds = snapshot ? snapshot.pits.reduce((sum: number, seeds: number) => sum + seeds, 0) : undefined;
+            if (profileForMove.preferences.visualEffectsEnabled) {
+              visualAtmosphere.onGameEvent('move-made', {
+                captureSize: capturedCount,
+                seedsLeft: totalSeeds
+              });
+            }
+
             if (capturedCount > 0) {
               setTimeout(() => playTone('capture'), 200);
+              // Trigger visual atmosphere for captures (only if enabled)
+              if (profileForMove.preferences.visualEffectsEnabled) {
+                visualAtmosphere.onGameEvent('capture-made', { captureSize: capturedCount });
+              }
             }
           }
           // Show actual player name instead of 'host'/'guest'
@@ -254,17 +287,26 @@ export const OnlineGame: React.FC<Props> = ({
           setSnapshot(msg.final);
           setRegularMessage('Game over.');
           playTone('end');
+
+          // Trigger visual atmosphere for game end (only if enabled)
+          // Determine if we won by checking if winner matches our player side
+          const ourPlayerSide = ourRole === 'host' ? 'A' : 'B';
+          const won = msg.final.winner === ourPlayerSide;
+          const profileAtEnd = ProfileService.getProfile();
+          if (profileAtEnd.preferences.visualEffectsEnabled) {
+            visualAtmosphere.onGameEvent('game-end', { won });
+          }
           break;
         case 'error':
           console.error('❌ Server error:', msg);
-          
+
           // Handle "game full" with limited auto-reconnection attempts
           if (msg.message && msg.message.toLowerCase().includes('full') && finalPlayerId) {
             if (reconnectAttempts.current < MAX_RECONNECT_ATTEMPTS) {
               reconnectAttempts.current++;
               console.log(`🔄 Game full error detected, attempting reconnection ${reconnectAttempts.current}/${MAX_RECONNECT_ATTEMPTS} with same playerId...`);
               setError(`Game full - attempting to reconnect as existing player... (${reconnectAttempts.current}/${MAX_RECONNECT_ATTEMPTS})`);
-              
+
               // Retry connection after short delay with same playerId
               setTimeout(() => {
                 console.log('🔄 Retrying connection to potentially rejoin as existing player');
@@ -272,7 +314,7 @@ export const OnlineGame: React.FC<Props> = ({
                   client.send({ type: 'join', gameId: code, name: finalPlayerName, playerId: finalPlayerId, reconnect: true });
                 }
               }, 2000);
-              
+
             } else {
               console.log('❌ Max reconnection attempts reached, giving up');
               setError(`Game full - Unable to reconnect after ${MAX_RECONNECT_ATTEMPTS} attempts. The server may not support reconnection yet.`);
@@ -323,11 +365,11 @@ export const OnlineGame: React.FC<Props> = ({
     if (snapshot?.ended && !gameResultRecorded) {
       const gameEndTime = Date.now();
       const gameDuration = (gameEndTime - gameStartTime) / 1000; // Convert to seconds
-      
+
       const ourRole = metaRef.current.role;
       const isWinner = ourRole ? (snapshot.winner === (ourRole === 'host' ? 'A' : 'B')) : false;
       const ourScore = ourRole === 'host' ? snapshot.captured.A : snapshot.captured.B;
-      
+
       const gameResult = {
         won: isWinner,
         seedsCaptured: ourScore,
@@ -335,14 +377,14 @@ export const OnlineGame: React.FC<Props> = ({
         opponent: 'Human', // Multiplayer opponent
         timestamp: gameEndTime
       };
-      
+
       try {
         ProfileService.recordGameResult(gameResult);
         console.log('🎮 Multiplayer game result recorded:', gameResult);
       } catch (error) {
         console.error('Failed to record multiplayer game result:', error);
       }
-      
+
       setGameResultRecorded(true);
     }
   }, [snapshot?.ended, snapshot?.winner, snapshot?.captured, gameStartTime, gameResultRecorded]);
@@ -350,28 +392,28 @@ export const OnlineGame: React.FC<Props> = ({
   function animateMove(pit: number, finalPits: number[]) {
     if (animState.animating) return;
     if (!snapshot) return;
-    
+
     const seeds = snapshot.pits[pit];
     if (seeds <= 0) return;
-    
+
     const order: number[] = [];
     for (let s=1; s<=seeds; s++) order.push((pit + s) % 12);
-    
+
     const temp = snapshot.pits.slice();
     temp[pit] = 0;
-    
+
     setAnimState(prev => ({
       ...prev,
       animating: true,
       displayPits: temp.slice(),
       prevPits: snapshot.pits.slice()
     }));
-    
+
     moveHandToPit(pit);
-    
+
     let step = 0;
     const per = 130; // ms per seed drop
-    
+
     function tick() {
       if (step >= order.length) {
         // Animation complete - update to final state
@@ -384,20 +426,20 @@ export const OnlineGame: React.FC<Props> = ({
         }));
         return;
       }
-      
+
       const target = order[step];
       temp[target] += 1;
       setAnimState(prev => ({
         ...prev,
         displayPits: temp.slice()
       }));
-      
+
       moveHandToPit(target);
       playTone('drop');
       step++;
       setTimeout(tick, per);
     }
-    
+
     // Start animation
     setTimeout(() => tick(), 10);
   }
@@ -406,24 +448,24 @@ export const OnlineGame: React.FC<Props> = ({
   function handlePitClick(pit: number) {
     const currentMeta = metaRef.current;
     console.log('🎯 Pit click attempt:', { pit, currentMeta, snapshot: !!snapshot, bothPlayersConnected });
-    
+
     if (!snapshot || !currentMeta.gameId) {
       console.log('🚫 Cannot play: missing snapshot or gameId', { snapshot: !!snapshot, gameId: currentMeta.gameId });
       return;
     }
-    
+
     // Check if both players are connected
     if (!bothPlayersConnected) {
       console.log('🚫 Cannot play: waiting for opponent to join');
       setMessage('Waiting for opponent to join...');
       return;
     }
-    
+
     if (pendingMove !== null) {
       console.log('🚫 Cannot play: move pending');
       return;
     }
-    
+
     if (animState.animating) {
       console.log('🚫 Cannot play: animation in progress');
       return;
@@ -445,13 +487,13 @@ export const OnlineGame: React.FC<Props> = ({
       return;
     }
     console.log('🎯 Playing pit:', pit, 'for gameId:', currentMeta.gameId, 'as player:', ourSide);
-    
+
     // Start local animation immediately for responsiveness
     if (snapshot) {
       const tempSnapshot = { ...snapshot };
       animateMove(pit, snapshot.pits);
     }
-    
+
     clientRef.current?.send({ type: 'move', gameId: currentMeta.gameId, pit });
     setPendingMove(pit);
     setTimeout(()=> setPendingMove(null), 600);
@@ -461,15 +503,15 @@ export const OnlineGame: React.FC<Props> = ({
   const ourRole = metaRef.current.role;
   const ourScore = snapshot ? (ourRole === 'host' ? snapshot.captured.A : snapshot.captured.B) : 0;
   const opponentScore = snapshot ? (ourRole === 'host' ? snapshot.captured.B : snapshot.captured.A) : 0;
-  const winner = snapshot?.ended ? 
-    (snapshot.winner === (ourRole === 'host' ? 'A' : 'B') ? `${finalPlayerName} wins!` : 
-     snapshot.winner === (ourRole === 'host' ? 'B' : 'A') ? `${opponentName} wins!` : 
+  const winner = snapshot?.ended ?
+    (snapshot.winner === (ourRole === 'host' ? 'A' : 'B') ? `${finalPlayerName} wins!` :
+     snapshot.winner === (ourRole === 'host' ? 'B' : 'A') ? `${opponentName} wins!` :
      'Draw.') : '';
 
   // Copy invitation function
   const copyInvitation = async () => {
     if (!meta.gameId) return;
-    
+
     const currentUrl = window.location.origin + window.location.pathname;
     const invitationMessage = `🎮 Join me for an Awale game!
 
@@ -491,7 +533,7 @@ Click the link or go to ${currentUrl} and enter the game code to play!`;
   // Copy URL only function
   const copyUrl = async () => {
     if (!meta.gameId) return;
-    
+
     const currentUrl = window.location.origin + window.location.pathname;
     const joinUrl = `${currentUrl}#join-${meta.gameId}`;
 
@@ -506,7 +548,7 @@ Click the link or go to ${currentUrl} and enter the game code to play!`;
   };
 
   const containerClass = "awale-container theme-"+theme;
-  
+
   return (
     <div className={containerClass}>
       <header className="topbar">
@@ -518,7 +560,7 @@ Click the link or go to ${currentUrl} and enter the game code to play!`;
           </div>
           <div className="turn">
             Turn: <strong>
-              {snapshot ? 
+              {snapshot ?
                 (snapshot.currentPlayer === (ourRole === 'host' ? 'A' : 'B') ? finalPlayerName : opponentName)
                 : 'Connecting...'}
             </strong>
@@ -529,15 +571,15 @@ Click the link or go to ${currentUrl} and enter the game code to play!`;
             <div className="code-display">
               <div>Game Code: <code>{meta.gameId}</code></div>
               <div className="copy-buttons">
-                <button 
-                  className="btn copy-invite" 
+                <button
+                  className="btn copy-invite"
                   onClick={copyInvitation}
                   title="Copy invitation message with game code and link"
                 >
                   📋 Share Invite
                 </button>
-                <button 
-                  className="btn copy-url" 
+                <button
+                  className="btn copy-url"
                   onClick={copyUrl}
                   title="Copy game URL only"
                 >
@@ -554,13 +596,13 @@ Click the link or go to ${currentUrl} and enter the game code to play!`;
           <button className="btn" onClick={()=> setTheme(t=> t==='dark'?'wood':'dark')} aria-pressed={theme==='wood'} title="Toggle wood theme">{theme==='wood' ? 'Dark Mode' : 'Wood Theme'}</button>
         </div>
       </header>
-      
+
       {!snapshot && (
         <div className="board-shell">
           <div className="loading">Waiting for game state...</div>
         </div>
       )}
-      
+
       {snapshot && (
         <div className="board-shell">
           <BoardView
