@@ -216,6 +216,7 @@ header { margin-bottom: 1rem; }
 /* Wood Theme -------------------------------------------------------- */
 .theme-wood .board-shell {
   /* Use relative path so GitHub Pages subpath works */
+  /* path relative to built css location; base handled by Vite */
   --wood-img:url(./textures/wood.jpg);
   background:
     radial-gradient(circle at 65% 28%, rgba(255,240,190,0.18), rgba(0,0,0,0) 60%),
