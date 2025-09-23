@@ -87,7 +87,7 @@ export class AudioDiscovery {
       ],
       effects: [
         'seed-drop.mp3',    // We know this exists
-        'success.wav',      // We know this exists  
+        'success.wav',      // We know this exists
         'wood-click.wav'    // We know this exists
       ]
     };

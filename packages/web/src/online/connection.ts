@@ -28,13 +28,13 @@ export class OnlineClient {
     this.ws = new WebSocket(this.url);
     this.ws.onopen = () => {
       console.log('✅ WebSocket connected');
-      
+
       // If this is a reconnection, notify the callback
       if (this.reconnectAttempts > 0 && this.onReconnect) {
         console.log('🔄 WebSocket reconnected, notifying callback');
         this.onReconnect();
       }
-      
+
       this.reconnectAttempts = 0;
       // flush
       while (this.pending.length && this.ws?.readyState === WebSocket.OPEN) {
