@@ -215,7 +215,8 @@ header { margin-bottom: 1rem; }
 
 /* Wood Theme -------------------------------------------------------- */
 .theme-wood .board-shell {
-  --wood-img:url(/textures/wood.jpg);
+  /* Use relative path so GitHub Pages subpath works */
+  --wood-img:url(./textures/wood.jpg);
   background:
     radial-gradient(circle at 65% 28%, rgba(255,240,190,0.18), rgba(0,0,0,0) 60%),
     var(--wood-img);
@@ -239,7 +240,7 @@ header { margin-bottom: 1rem; }
 
 /* Carved pit redesign: unified texture + layered concave shading */
 .theme-wood .pit, .theme-wood .row.opponent .pit {
-  --wood-img:url(/textures/wood.jpg);
+  --wood-img:url(./textures/wood.jpg);
   position:relative;
   border-radius:50% !important;
   border:2px solid #8d6035;
@@ -365,7 +366,7 @@ header { margin-bottom: 1rem; }
 /* Slight darkening behind board for readability */
 .theme-wood .board-shell { -webkit-backdrop-filter:blur(1px) brightness(.96); backdrop-filter:blur(1px) brightness(.96); }
 .theme-dark .board-shell {
-  --wood-img:url(/textures/wood.jpg);
+  --wood-img:url(./textures/wood.jpg);
   background:
     radial-gradient(circle at 50% 55%, rgba(255,255,255,0.05), rgba(0,0,0,0.55) 80%),
     var(--wood-img);
